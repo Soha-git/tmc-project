@@ -11,6 +11,6 @@ synatx|GoLint:
   stage: syntax
   image: golang:1.18rc1-alpine3.14
   script:
-    - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.44.2
+    - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.44.2
     - golangci-lint --version
     - golangci-lint run
