@@ -7,13 +7,8 @@ stages:
   - TestImage
   - Deploy
 
-
-
-
-format:
-  stage: lint
-  image: golang:latest
+synatx|GoLint:
+  stage: syntax
+  image: golangci/golangci-lint:v1.44.2
   script:
-    - go fmt 
-    - go vet 
-    - go test -race 
+    - golangci-lint run 
