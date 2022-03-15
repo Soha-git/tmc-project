@@ -14,15 +14,6 @@ synatx|GoLint:
   script:
     - golangci-lint run -v app
 
-
-TestRequest|Test:
-  stage: Test 
-  image: golang:1.18rc1-bullseye
-  needs: ["synatx|GoLint"]
-  script:
-    - go test -v ./test/request_test.go 
-
-
 TestServer|Test:
   stage: Test 
   image: golang:1.18rc1-bullseye
@@ -31,3 +22,26 @@ TestServer|Test:
     - go test -v ./test/server_test.go 
 
 
+
+BuildImage|Build:
+  stage: Build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+
+TestRequest|Test:
+  stage: TestImage
+  image: golang:1.18rc1-bullseye
+  services:
+    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+      alias: server
+  script:
+    - go test -v ./test/request_test.go 

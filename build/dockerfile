@@ -6,7 +6,7 @@ COPY . /src
 
 WORKDIR /src
 RUN go mod download && \
-    go build -o main . 
+    CGO_ENABLED=0 go build -o main . 
 
 
 FROM alpine:3.14 as base
@@ -14,10 +14,10 @@ FROM alpine:3.14 as base
 RUN apk add ca-certificates &&\
     mkdir /app &&\
     adduser -D go-app
-COPY  --from=build /test/main /app/main 
+COPY  --from=build /src/main /app/main 
 
 RUN  chown -R go-app:go-app /app/
 WORKDIR /app
-EXPOSE 8080
+EXPOSE 80
 
 ENTRYPOINT [ "./main" ]
