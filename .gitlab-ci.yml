@@ -20,12 +20,18 @@ TestRequest|Test:
   image: golang:1.17.7-alpine3.14
   needs: ["synatx|GoLint"]
   script:
+<<<<<<< HEAD
     - go test -v ./test/testRequest.go
+=======
+>>>>>>> b926762a6d9a31f3f8243fda664bba369d12e377
 
 TestServer|Test:
   stage: Test 
   image: golang:1.17.7-alpine3.14
   needs: ["synatx|GoLint"]
   script:
+<<<<<<< HEAD
     - go test -v ./test/testServer.go
+=======
+>>>>>>> b926762a6d9a31f3f8243fda664bba369d12e377
 
