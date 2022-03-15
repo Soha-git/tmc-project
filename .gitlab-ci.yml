@@ -11,10 +11,13 @@ stages:
 
 synatx|GoLint:
   stage: syntax
-  image: golangci/golangci-lint:v1.44.2
-  script:
-    - go get ./...
-    - golangci-lint run app/
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+    - golangci-lint run --issues-exit-code 0 --out-format code-climate | tee gl-code-quality-report.json | jq -r '.[] | "\(.location.path):\(.location.lines.begin) \(.description)"'
+  artifacts:
+    reports:
+      codequality: gl-code-quality-report.json
+    paths:
+      - gl-code-quality-report.json
 
 TestRequest|Test:
   stage: Test 
