@@ -20,7 +20,7 @@ TestRequest|Test:
   image: golang:1.17.7-alpine3.14
   needs: ["synatx|GoLint"]
   script:
-    - go test -v ./test/request_test.go
+    - go test -v ./test/request_test.go .app/main.go
 
 
 TestServer|Test:
@@ -28,6 +28,6 @@ TestServer|Test:
   image: golang:1.17.7-alpine3.14
   needs: ["synatx|GoLint"]
   script:
-    - go test -v ./test/server_test.go
+    - go test -v ./test/server_test.go .app/main.go
 
 
