@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 )
 
-func TestResponseRecorder() {
+func TestResponseRecorder(t *testing.T)) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "Hello, world!\n")
 	}
