@@ -10,7 +10,10 @@ import (
 
 func RequestTest(t *testing.T) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "Test\n")
+		_, err := io.WriteString(w, "Test\n")
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	req := httptest.NewRequest("GET", "http://localhost", nil)
