@@ -3,15 +3,14 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-func TestResponseRecorder(t *testing.T) {
+func RequestTest(t *testing.T) {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "Hello, world!\n")
+		io.WriteString(w, "Test\n")
 	}
 
 	req := httptest.NewRequest("GET", "http://localhost", nil)
