@@ -13,19 +13,19 @@ synatx|GoLint:
   stage: syntax
   image: golangci/golangci-lint:v1.44.2
   script:
-    - golangci-lint run ./app/...
+    - golangci-lint run ./../app/...
 
 TestRequest|Test:
   stage: Test 
   image: .golang
   needs: ["synatx|GoLint"]
   script:
-    - go test /app/main.go /test/testRequest.go
+    - go test -v ./app/main.go ./test/testRequest.go
 
 TestServer|Test:
   stage: Test 
   image: .golang
   needs: ["synatx|GoLint"]
   script:
-    - go test /app/main.go /test/testServer.go
+    - go test -v ./app/main.go ./test/testServer.go
 
