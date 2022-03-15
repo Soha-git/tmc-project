@@ -1,4 +1,4 @@
-package httptest_test
+package main
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"testing"
 )
 
 func TestServer(t *testing.T) {
