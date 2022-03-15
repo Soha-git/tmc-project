@@ -9,7 +9,14 @@ import (
 	"testing"
 )
 
-func RequestTest(t *testing.T) {
+func TestRequest(t *testing.T) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.WriteString(w, "Test\n")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	req := httptest.NewRequest("GET", "http://localhost", nil)
 	w := httptest.NewRecorder()
 	handler(w, req)
@@ -19,4 +26,5 @@ func RequestTest(t *testing.T) {
 
 	fmt.Println(resp.StatusCode)
 	fmt.Println(resp.Header.Get("Content-Type"))
+	fmt.Println(string(body))
 }
