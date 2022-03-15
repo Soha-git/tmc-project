@@ -13,7 +13,7 @@ synatx|GoLint:
   stage: syntax
   image: golangci/golangci-lint:v1.44.2
   script:
-    - golangci-lint run /app
+    - golangci-lint run 
 
 TestRequest|Test:
   stage: Test 
