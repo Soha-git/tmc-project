@@ -1,4 +1,4 @@
-package httptest_test
+package main
 
 import (
 	"fmt"
@@ -6,17 +6,10 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	
+	"testing"
 )
 
-func RequestTest() {
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		_, err := io.WriteString(w, "Test\n")
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
+func RequestTest(t *testing.T) {
 	req := httptest.NewRequest("GET", "http://localhost", nil)
 	w := httptest.NewRecorder()
 	handler(w, req)
@@ -26,5 +19,4 @@ func RequestTest() {
 
 	fmt.Println(resp.StatusCode)
 	fmt.Println(resp.Header.Get("Content-Type"))
-	fmt.Println(string(body))
 }
