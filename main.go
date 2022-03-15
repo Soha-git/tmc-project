@@ -9,7 +9,10 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Hello, world!\n") // ignore err
+	_, err := io.WriteString(w, "Hello, world!\n")
+	if err != nil {
+        log.Fatal(err)
+    }
 }
 
 // Route declaration
