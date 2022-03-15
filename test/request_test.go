@@ -1,4 +1,4 @@
-package main
+package httptest_test
 
 import (
 	"fmt"
@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"testing"
+	
 )
 
-func RequestTest(t *testing.T) {
+func RequestTest() {
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		_, err := io.WriteString(w, "Test\n")
 		if err != nil {
