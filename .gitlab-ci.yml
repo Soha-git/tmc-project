@@ -14,7 +14,7 @@ synatx|GoLint:
   image: golangci/golangci-lint:v1.44.2
   script:
     - go get ./...
-    - golangci-lint run
+    - golangci-lint run app/
 
 TestRequest|Test:
   stage: Test 
