@@ -1,0 +1,24 @@
+replicaCount: 3
+
+image:
+  repository: registry.gitlab.com/sorokinalexander/golang-application
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "47173e45"
+imagePullSecrets: registry-credentials
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  className: "nginx"
+  hosts:
+    - host: hello-golang.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []  
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
