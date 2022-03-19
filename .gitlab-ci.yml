@@ -5,8 +5,8 @@ stages:
   # - Build
   # - TestImage
   # - Deploy
-
-  
+variables:
+  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
 syntax:
   stage: syntax
   image: ubuntu:20.04
