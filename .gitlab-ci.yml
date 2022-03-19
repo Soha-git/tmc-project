@@ -11,7 +11,7 @@ syntax:
   stage: syntax
   image: alpine:3.14
   script:
-    - apk add --no-cache rsync
+    - apk add --no-cache rsync openssh-client
     - rsync -av -e "ssh -i $k8s_local_ssh" vagrant@10.10.0.10:/home/vagrant/config/config /
 
 # synatx|GoLint:
