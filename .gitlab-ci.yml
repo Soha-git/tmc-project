@@ -1,10 +1,10 @@
 ---
 stages:
   - syntax
-  - Test
-  - Build
-  - TestImage
-  - Deploy
+  # - Test
+  # - Build
+  # - TestImage
+  # - Deploy
 
   
 syntax:
