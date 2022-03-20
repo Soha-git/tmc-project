@@ -25,6 +25,7 @@ kubectl:Test:
   stage: Test
   image: ${CI_REGISTRY_IMAGE}:base-0.1
   script:
+    - cat $kube_config | base64 -d
     - echo $kube_config |base64 -d > $KUBECONFIG
     - kubectl get pods -A
 
