@@ -1,64 +1,45 @@
 ---
 stages:
   - syntax
-  # - Test
-  # - Build
-  # - TestImage
-  # - Deploy
+  - Test
+  - Build
+  - TestImage
+  - Deploy
 
-# before_script:
-#     - 'which ssh-agent || ( apt-get update -y && apt-get install rsync openssh-client -y )'
-#     - eval $(ssh-agent -s)
-#     - ssh-add <(echo "$SSH_PRIVATE_KEY")
-#     - mkdir -p ~/.ssh
-#     - chmod 700 ~/.ssh
-#     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
-syntax:
+synatx|GoLint:
   stage: syntax
-  image: registry.cn-hangzhou.aliyuncs.com/haoshuwei24/kubectl:1.16.6
-  tags:
-    - k8s-runner
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
   script:
-    - mkdir -p /etc/deploy
-    - echo $kube_config |base64 -d > $KUBECONFIG
-    - sed -i "s/IMAGE_TAG/$CI_PIPELINE_ID/g" deployment.yaml
-    - cat deployment.yaml
-    - kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.1/deploy/static/provider/cloud/deploy.yaml
+    - golangci-lint run 
 
-# synatx|GoLint:
-#   stage: syntax
-#   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
-#   script:
-#     - golangci-lint run 
-
-# TestServer|Test:
-#   stage: Test 
-#   image: golang:1.18rc1-bullseye
-#   needs: ["synatx|GoLint"]
-#   script:
-#     - go test -v ./test/server_test.go 
+TestServer|Test:
+  stage: Test 
+  image: golang:1.18rc1-bullseye
+  needs: ["synatx|GoLint"]
+  script:
+    - go test -v ./test/server_test.go 
 
 
 
-# BuildImage|Build:
-#   stage: Build
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/build/dockerfile"
-#       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+BuildImage|Build:
+  stage: Build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
 
-# TestRequest|Test:
-#   stage: TestImage
-#   image: golang:1.18rc1-bullseye
-#   services:
-#     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
-#       alias: server
-#   script:
-#     - go test -v ./test/request_test.go 
+TestRequest|Test:
+  stage: TestImage
+  image: golang:1.18rc1-bullseye
+  services:
+    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+      alias: server
+  script:
+    - go test -v ./test/request_test.go 
