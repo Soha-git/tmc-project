@@ -19,7 +19,7 @@ buildBaseImage:
       /kaniko/executor
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-      --destination "${CI_PROJECT_DIR}:${CI_COMMIT_SHORT_SHA}"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
 
 # synatx|GoLint:
 #   stage: syntax
