@@ -1,16 +1,25 @@
 ---
 stages:
+  - buildBaseImage
   - syntax
   - Test
   - Build
   - TestImage
   - Deploy
-syntax:
-  stage: syntax
-  image: bitnami/kubectl:1.20.15-debian-10-r58
+
+buildBaseImage:
+  stage: buildBaseImage
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
-    - echo $kube_config |base64 -d > $KUBECONFIG
-    - cat $KUBECONFIG
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+      --destination "base-image:${CI_COMMIT_SHORT_SHA}"
 
 # synatx|GoLint:
 #   stage: syntax
@@ -38,7 +47,7 @@ syntax:
 #     - >-
 #       /kaniko/executor
 #       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/build/dockerfile"
+#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
 #       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
 
 # TestRequest|Test:
