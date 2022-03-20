@@ -15,15 +15,13 @@ stages:
 #     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 syntax:
   stage: syntax
-  image: registry.cn-hangzhou.aliyuncs.com/haoshuwei24/kubectl:1.16.6
+  image: bitnami/kubectl:1.20.15-debian-10-r58
   tags:
     - k8s-runner
   script:
     - mkdir -p /etc/deploy
     - echo $kube_config |base64 -d > $KUBECONFIG
-    - sed -i "s/IMAGE_TAG/$CI_PIPELINE_ID/g" deployment.yaml
-    - cat deployment.yaml
-    - kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.1/deploy/static/provider/cloud/deploy.yaml
+    - kubectl get pods -A
 
 # synatx|GoLint:
 #   stage: syntax
