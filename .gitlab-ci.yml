@@ -25,7 +25,8 @@ kubectl:Test:
   stage: Test
   image: ${CI_REGISTRY_IMAGE}:base-0.1
   script:
-    - echo $kube_config |base64 -d > $KUBECONFIG
+    - mkdir -p $HOME/.kube
+    - echo $kube_config |base64 -d > $HOME/.kube/config
     - kubectl get pods -A
 
 # synatx|GoLint:
