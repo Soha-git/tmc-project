@@ -15,14 +15,15 @@ stages:
 #     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 syntax:
   stage: syntax
-  image: ubuntu:20.04
+  image: registry.cn-hangzhou.aliyuncs.com/haoshuwei24/kubectl:1.16.6
+  tags:
+    - k8s-runner
   script:
-    - sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl
-    - sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    - echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-    - sudo apt-get update && sudo apt-get install -y kubelet kubeadm kubectl && sudo apt-mark hold kubelet kubeadm kubectl
-    - kubectl get pods -A 
-    #- 'rsync -av -e "ssh" vagrant@10.10.0.10:/home/vagrant/config/config /'
+    - mkdir -p /etc/deploy
+    - echo $kube_config |base64 -d > $KUBECONFIG
+    - sed -i "s/IMAGE_TAG/$CI_PIPELINE_ID/g" deployment.yaml
+    - cat deployment.yaml
+    - kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.1/deploy/static/provider/cloud/deploy.yaml
 
 # synatx|GoLint:
 #   stage: syntax
