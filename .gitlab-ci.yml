@@ -6,19 +6,23 @@ stages:
   # - TestImage
   # - Deploy
 
-before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install rsync openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - ssh-add <(echo "${SSH_PRIVATE_KEY}")
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+# before_script:
+#     - 'which ssh-agent || ( apt-get update -y && apt-get install rsync openssh-client -y )'
+#     - eval $(ssh-agent -s)
+#     - ssh-add <(echo "$SSH_PRIVATE_KEY")
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 syntax:
   stage: syntax
   image: ubuntu:20.04
   script:
-
-    - 'rsync -av -e "ssh" vagrant@10.10.0.10:/home/vagrant/config/config /'
+    - sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl
+    - sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    - echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    - sudo apt-get update && sudo apt-get install -y kubelet kubeadm kubectl && sudo apt-mark hold kubelet kubeadm kubectl
+    - kubectl get pods -A 
+    #- 'rsync -av -e "ssh" vagrant@10.10.0.10:/home/vagrant/config/config /'
 
 # synatx|GoLint:
 #   stage: syntax
