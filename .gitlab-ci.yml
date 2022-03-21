@@ -72,7 +72,7 @@ HelmIngress:helm:
   stage: helm
   image: ${CI_REGISTRY_IMAGE}:base-0.1     
   tags:
-    - k8s_runner
+    - k8s-runner
   script:
     - helm upgrade --install ingress-nginx ingress-nginx \
       --repo https://kubernetes.github.io/ingress-nginx \
