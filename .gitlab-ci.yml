@@ -1,14 +1,26 @@
 ---
 stages:
+  - lint
   - buildBaseImage
-  - syntax
   - Test
   - Build
   - TestImage
   - Deploy
 
+
+Hadolint:lint:
+  stage: lint
+  image: hadolint/hadolint:latest
+  script:
+    - hadolint /build/base-images/dockerfile
+Golint:lint:
+  stage: lint
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+  script:
+    - golangci-lint run 
 buildBaseImage:
   stage: buildBaseImage
+  needs: ["Hadolin:lint"]
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -21,48 +33,30 @@ buildBaseImage:
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
 
-kubectl:Test:
-  stage: Test
+
+TestServer|Test:
+  stage: Test 
   image: ${CI_REGISTRY_IMAGE}:base-0.1
+  needs: ["synatx|GoLint"]
   script:
-    - mkdir -p $HOME/.kube
-    - cat $kube_config |base64 -d > $HOME/.kube/config
-    - kubectl get pods -A
-
-# synatx|GoLint:
-#   stage: syntax
-#   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
-#   script:
-#     - golangci-lint run 
-
-# TestServer|Test:
-#   stage: Test 
-#   image: golang:1.18rc1-bullseye
-#   needs: ["synatx|GoLint"]
-#   script:
-#     - go test -v ./test/server_test.go 
+    - go test -v ./test/server_test.go 
 
 
 
-# BuildImage|Build:
-#   stage: Build
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-#       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+BuildImage|Build:
+  stage: Build
+  image:
+    name: ${CI_REGISTRY_IMAGE}:base-0.1
+  script:
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
 
-# TestRequest|Test:
-#   stage: TestImage
-#   image: golang:1.18rc1-bullseye
-#   services:
-#     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
-#       alias: server
-#   script:
-#     - go test -v ./test/request_test.go 
+TestRequest|Test:
+  stage: TestImage
+  image: ${CI_REGISTRY_IMAGE}:base-0.1
+  services:
+    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+      alias: server
+  script:
+    - go test -v ./test/request_test.go 
