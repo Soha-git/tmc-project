@@ -19,7 +19,7 @@ Golint:lint:
     - golangci-lint run 
 
 buildBaseImage:build:
-  stage: buil
+  stage: build
   needs: ["Hadolint:lint"]
   image:
     name: gcr.io/kaniko-project/executor:debug
