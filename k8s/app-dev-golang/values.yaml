@@ -22,3 +22,7 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+data:
+  key: .dockerconfigjson 
+  values: eyJhdXRocyI6eyJyZWdpc3RyeS5naXRsYWIuY29tIjp7ImF1dGgiOiJhM1ZpWlMxd2RXeHNPbHB6Vm5CT1dGTXhVSHBUVXpKRk5IWmhOREZrIn19fQ==
