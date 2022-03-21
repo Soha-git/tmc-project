@@ -22,17 +22,21 @@ checkInterval: 30
 
 ## For RBAC support:
 rbac:
-  create: true
+  create: false
   
   ## Run the gitlab-bastion container with the ability to deploy/manage containers of jobs
   ## cluster-wide or only within namespace
-  rules: 
-  # - resources: ["configmaps", "pods", "pods/attach", "secrets", "services"]
-  #   verbs: ["get", "list", "watch", "create", "patch", "delete"]
-  - apiGroups: [""]
-    resources: ["configmaps","pods/exec", pods", "secrets", "services"]
-    verbs: ["get", "list", "watch", "create", "patch", "delete"]
+  rules: []
 
+  
+
+  clusterWideAccess: false
+  #serviceAccountName: gitlab-runner-admin
+
+podSecurityPolicy:
+    enabled: false
+    resourceNames:
+    - gitlab-runner
 
 ## Configure integrated Prometheus metrics exporter
 metrics:
@@ -68,7 +72,7 @@ runners:
   helpers: {}
 
   ## Service Account to be used for runners
-  serviceAccountName: gitlab-runner-gitlab-runner
+
 
 ## Configure resource requests and limits
 resources: {}
@@ -83,10 +87,6 @@ nodeSelector: {}
 tolerations: []
 
 ## Configure environment variables that will be present when the registration command runs
-envVars:
-  - name: RUNNER_EXECUTOR
-    value: kubernetes
-
 ## list of hosts and IPs that will be injected into the pod's hosts file
 hostAliases: []
 
