@@ -74,7 +74,5 @@ HelmIngress:helm:
   tags:
     - k8s-deploy
   script:
-    - helm upgrade --install ingress-nginx ingress-nginx \
-      --repo https://kubernetes.github.io/ingress-nginx \
-      --namespace ingress-nginx --create-namespace
+    helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
 
