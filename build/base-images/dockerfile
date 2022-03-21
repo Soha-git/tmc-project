@@ -15,11 +15,6 @@ RUN apk add --update --no-cache curl=~7 wget=~1 unzip=~6 ca-certificates=~202112
 FROM base as tools
 
 WORKDIR /tmp
-ARG HADOLIN_VERSION=v2.9.1
-
-RUN wget -nv https://github.com/hadolint/hadolint/releases/download/${HADOLIN_VERSION}/hadolint-Linux-x86_64 &&\
-    mv hadolint-Linux-x86_64  /usr/bin/hadolint &&\
-    chmod 765 /usr/bin/hadolint
 ARG KUBERNETES_VERSION=v1.23.5    
 RUN wget -nv https://dl.k8s.io/${KUBERNETES_VERSION}/bin/linux/amd64/kubectl &&\
     mv kubectl /usr/bin/kubectl &&\
@@ -38,8 +33,7 @@ RUN addgroup gitlab &&\
     chown gitlab:root /home/gitlab &&\
     chmod g=u /home/gitlab/ &&\
     chmod g=u /etc/passwd
-COPY --from=build /go/kaniko/out/executor /usr/bin/hadolint
-COPY --from=tools /usr/bin/hadolint /usr/bin/hadolint
+COPY --from=build /go/kaniko/out/executor /usr/bin/kaniko
 COPY --from=tools /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=tools /usr/bin/helm /usr/bin/helm
 COPY --from=build /usr/local/go/bin/ /usr/local/go/bin/

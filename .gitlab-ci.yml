@@ -18,7 +18,7 @@ Golint:lint:
   script:
     - golangci-lint run 
 
-buildBaseImage:build:
+BaseImage:build:
   stage: build
   needs: ["Hadolint:lint"]
   image:
@@ -32,12 +32,12 @@ buildBaseImage:build:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
-buildAppImage:build:
+AppImage:build:
   stage: build
   needs: 
     - "Hadolint:lint"
     - "Golint:lint"
-    - "buildBaseImage:build"
+    - "BaseImage:build"
   image:
     name: ${CI_REGISTRY_IMAGE}:base-0.1
   script:
