@@ -3,6 +3,7 @@ stages:
   - lint
   - build
   - Test
+  - helm
   - Deploy
 
 
@@ -66,3 +67,13 @@ TestRequest|Test:
       alias: server
   script:
     - go test -v ./test/request_test.go 
+
+HelmIngress:helm:
+  stage: helm
+  image: ${CI_REGISTRY_IMAGE}:base-0.1     
+  tags:
+    - k8s_runner
+  script:
+    - helm upgrade --install ingress-nginx ingress-nginx \
+      --repo https://kubernetes.github.io/ingress-nginx \
+      --namespace ingress-nginx --create-namespace
