@@ -26,7 +26,13 @@ rbac:
   
   ## Run the gitlab-bastion container with the ability to deploy/manage containers of jobs
   ## cluster-wide or only within namespace
-  clusterWideAccess: true
+  rules: 
+  # - resources: ["configmaps", "pods", "pods/attach", "secrets", "services"]
+  #   verbs: ["get", "list", "watch", "create", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["configmaps","pods/exec", pods", "secrets", "services"]
+    verbs: ["get", "list", "watch", "create", "patch", "delete"]
+
 
 ## Configure integrated Prometheus metrics exporter
 metrics:
