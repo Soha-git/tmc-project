@@ -7,66 +7,66 @@ stages:
   - Deploy
 
 
-Hadolint:lint:
-  stage: lint
-  image: hadolint/hadolint:v2.9.2-alpine
-  script:
-    - hadolint ${CI_PROJECT_DIR}/build/base-images/dockerfile
-    - hadolint dockerfile
-Golint:lint:
-  stage: lint
-  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
-  script:
-    - golangci-lint run 
+# Hadolint:lint:
+#   stage: lint
+#   image: hadolint/hadolint:v2.9.2-alpine
+#   script:
+#     - hadolint ${CI_PROJECT_DIR}/build/base-images/dockerfile
+#     - hadolint dockerfile
+# Golint:lint:
+#   stage: lint
+#   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+#   script:
+#     - golangci-lint run 
 
-BaseImage:build:
-  stage: build
-  needs: ["Hadolint:lint"]
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:base-0.1"
-AppImage:build:
-  stage: build
-  needs: 
-    - "Hadolint:lint"
-    - "Golint:lint"
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+# BaseImage:build:
+#   stage: build
+#   needs: ["Hadolint:lint"]
+#   image:
+#     name: gcr.io/kaniko-project/executor:debug
+#     entrypoint: [""]
+#   script:
+#     - mkdir -p /kaniko/.docker
+#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+#     - >-
+#       /kaniko/executor
+#       --cache=true --context "${CI_PROJECT_DIR}"
+#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+#       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
+# AppImage:build:
+#   stage: build
+#   needs: 
+#     - "Hadolint:lint"
+#     - "Golint:lint"
+#   image:
+#     name: gcr.io/kaniko-project/executor:debug
+#     entrypoint: [""]
+#   script:
+#     - mkdir -p /kaniko/.docker
+#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+#     - >-
+#       /kaniko/executor
+#       --cache=true --context "${CI_PROJECT_DIR}"
+#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+#       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
 
-TestServer|Test:
-  stage: Test 
-  image: tetafro/golang-gcc:1.17-alpine
-  services:
-    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
-      alias: server
-  script:
-    - go test -v ./test/server_test.go 
+# TestServer|Test:
+#   stage: Test 
+#   image: tetafro/golang-gcc:1.17-alpine
+#   services:
+#     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+#       alias: server
+#   script:
+#     - go test -v ./test/server_test.go 
 
-TestRequest|Test:
-  stage: Test
-  image: tetafro/golang-gcc:1.17-alpine
-  services:
-    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
-      alias: server
-  script:
-    - go test -v ./test/request_test.go 
+# TestRequest|Test:
+#   stage: Test
+#   image: tetafro/golang-gcc:1.17-alpine
+#   services:
+#     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+#       alias: server
+#   script:
+#     - go test -v ./test/request_test.go 
 
 HelmIngress:helm:
   stage: helm
@@ -74,5 +74,8 @@ HelmIngress:helm:
   tags:
     - k8s-deploy
   script:
-    helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
+    - kubectl --namespace default patch deployment $CI_PROJECT_NAME -p "$KUBERNETES_PATCH"
+  variables:
+    KUBERNETES_PATCH: "{\"spec\": {\"template\":{\"metadata\":{\"labels\":{\"version\":\"$CI_BUILD_ID\"}}}}}"
+    #- helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
 
