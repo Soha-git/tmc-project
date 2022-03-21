@@ -10,8 +10,8 @@ Hadolint:lint:
   stage: lint
   image: hadolint/hadolint:v2.9.2-alpine
   script:
-    - hadolint /build/base-images/dockerfile
-    - hadolint dockerfile
+    - hadolint ${CI_PROJECT_DIR}/build/base-images/dockerfile
+    - hadolint ${CI_PROJECT_DIR}dockerfile
 Golint:lint:
   stage: lint
   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
