@@ -1,10 +1,8 @@
 ---
 stages:
   - lint
-  - buildBaseImage
+  - build
   - Test
-  - Build
-  - TestImage
   - Deploy
 
 
@@ -13,14 +11,16 @@ Hadolint:lint:
   image: hadolint/hadolint:latest
   script:
     - hadolint /build/base-images/dockerfile
+    - hadolint /
 Golint:lint:
   stage: lint
   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
   script:
     - golangci-lint run 
-buildBaseImage:
-  stage: buildBaseImage
-  needs: ["Hadolin:lint"]
+
+buildBaseImage:build:
+  stage: buil
+  needs: ["Hadolint:lint"]
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -32,7 +32,17 @@ buildBaseImage:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
-
+buildAppImage:build:
+  stage: build
+  needs: 
+    - "Hadolint:lint"
+    - "Golint:lint"
+  image:
+    name: ${CI_REGISTRY_IMAGE}:base-0.1
+  script:
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
 
 TestServer|Test:
   stage: Test 
@@ -41,19 +51,8 @@ TestServer|Test:
   script:
     - go test -v ./test/server_test.go 
 
-
-
-BuildImage|Build:
-  stage: Build
-  image:
-    name: ${CI_REGISTRY_IMAGE}:base-0.1
-  script:
-      --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-
 TestRequest|Test:
-  stage: TestImage
+  stage: Test
   image: ${CI_REGISTRY_IMAGE}:base-0.1
   services:
     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
