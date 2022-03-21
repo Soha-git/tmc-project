@@ -72,7 +72,8 @@ HelmIngress:helm:
   stage: helm
   image: alpine/helm:3.8.1  
   tags:
-    - k8s-deploy
+    - k8s
   script:
+    - helm init --client-only
     - helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
 
