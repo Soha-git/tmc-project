@@ -37,6 +37,7 @@ buildAppImage:build:
   needs: 
     - "Hadolint:lint"
     - "Golint:lint"
+    - "buildBaseImage:build"
   image:
     name: ${CI_REGISTRY_IMAGE}:base-0.1
   script:
