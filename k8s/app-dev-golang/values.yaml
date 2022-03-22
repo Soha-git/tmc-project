@@ -5,7 +5,7 @@ image:
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "47173e45"
-imagePullSecrets: gitlab-runner-gitlab-runner 
+imagePullSecrets: registry-credentials
 service:
   type: ClusterIP
   port: 80
@@ -21,3 +21,8 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+name: registry-credentials
+data:
+  key: .dockerconfigjson 
+  values: eyJhdXRocyI6eyJyZWdpc3RyeS5naXRsYWIuY29tIjp7ImF1dGgiOiJhM1ZpWlMxd2RXeHNPbHB6Vm5CT1dGTXhVSHBUVXpKRk5IWmhOREZrIn19fQ==
