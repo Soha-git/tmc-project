@@ -40,6 +40,6 @@ COPY --from=build /usr/local/go/bin/ /usr/local/go/bin/
 RUN chmod +x /usr/local/bin/kubectl
 USER gitlab
 WORKDIR /home/gitlab
-
+COPY . .
 ENV PATH="/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:$PATH"
 
