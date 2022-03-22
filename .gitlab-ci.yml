@@ -19,20 +19,20 @@ stages:
 #   script:
 #     - golangci-lint run 
 
-BaseImage:build:
-  stage: build
-  #needs: ["Hadolint:lint"]
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:base-0.1"
+# BaseImage:build:
+#   stage: build
+#   needs: ["Hadolint:lint"]
+#   image:
+#     name: gcr.io/kaniko-project/executor:debug
+#     entrypoint: [""]
+#   script:
+#     - mkdir -p /kaniko/.docker
+#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+#     - >-
+#       /kaniko/executor
+#       --cache=true --context "${CI_PROJECT_DIR}"
+#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+#       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
 # AppImage:build:
 #   stage: build
 #   needs: 
@@ -72,6 +72,7 @@ HelmPackage:build:
   stage: build
   image: ${CI_REGISTRY_IMAGE}:base-0.1
   script:
+    - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang 
     - helm cm-push app-golang-chart-0.1.0.tgz project-1

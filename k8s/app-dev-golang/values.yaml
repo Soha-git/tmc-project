@@ -5,8 +5,7 @@ image:
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "47173e45"
-imagePullSecrets: registry-credentials
-
+imagePullSecrets: gitlab-runner-gitlab-runner 
 service:
   type: ClusterIP
   port: 80
