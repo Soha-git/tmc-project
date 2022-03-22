@@ -68,16 +68,19 @@ stages:
 #   script:
 #     - go test -v ./test/request_test.go 
 
-HelmIngress:helm:
+# HelmPackage:build:
+#   stage: build
+#   image: ${CI_REGISTRY_IMAGE}:base-0.1
+#   script:
+#     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+#     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang 
+#     - helm cm-push app-golang-chart-0.1.0.tgz project-1
+
+Helm:Helm:
   stage: helm
   image: ${CI_REGISTRY_IMAGE}:base-0.1
+  tags:
+    - k8s
   script:
-    - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
-    - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang
-    - helm cm-push app-golang-chart-0.1.0.tgz project-1
-    
-    #- helm cm-push ${CI_PROJECT_DIR}/app-dev-golang-0.1.0.tgz project-1
-    # - -user gitlab-ci-token:$CI_JOB_TOKEN --form "chart=@mychart-0.1.0.tgz" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/<channel>/charts
-    #- curl --request POST --user gitlab-token:$CI_JOB_TOKEN --form "chart=app-dev-golang-0.1.0.tgz" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
-
+    - helm install "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable/app-golang-chart-0.1.0.tgz"

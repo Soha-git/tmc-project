@@ -37,9 +37,9 @@ COPY --from=build /go/kaniko/out/executor /usr/bin/kaniko
 COPY --from=tools /usr/bin/kubectl /usr/local/bin/kubectl
 COPY --from=tools /usr/bin/helm /usr/bin/helm
 COPY --from=build /usr/local/go/bin/ /usr/local/go/bin/
-RUN chmod +x /usr/local/bin/kubectl
+
+RUN helm plugin install https://github.com/chartmuseum/helm-push
 USER gitlab
 WORKDIR /home/gitlab
-COPY . .
 ENV PATH="/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:$PATH"
 
