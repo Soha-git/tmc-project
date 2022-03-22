@@ -68,14 +68,14 @@ stages:
 #   script:
 #     - go test -v ./test/request_test.go 
 
-HelmPackage:build:
-  stage: build
-  image: ${CI_REGISTRY_IMAGE}:base-0.1
-  script:
-    - helm plugin install https://github.com/chartmuseum/helm-push
-    - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
-    - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang 
-    - helm cm-push app-golang-chart-0.1.0.tgz project-1
+# HelmPackage:build:
+#   stage: build
+#   image: ${CI_REGISTRY_IMAGE}:base-0.1
+#   script:
+#     - helm plugin install https://github.com/chartmuseum/helm-push
+#     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+#     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang 
+#     - helm cm-push app-golang-chart-0.1.0.tgz project-1
 
 Helm:Helm:
   stage: helm
@@ -84,4 +84,4 @@ Helm:Helm:
     - k8s
   script:
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
-    - helm install app-dev project-1/app-golang-chart
+    - helm install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
