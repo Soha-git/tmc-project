@@ -22,16 +22,19 @@ checkInterval: 30
 
 ## For RBAC support:
 rbac:
-  create: false
-  
+  create: true
   ## Run the gitlab-bastion container with the ability to deploy/manage containers of jobs
   ## cluster-wide or only within namespace
-  rules: []
+  rules: 
+    # - apiGroups: [""]
+  #   resources: ["pods/exec"]
+  #   verbs: ["create", "patch", "delete"]
+
 
   
 
-  clusterWideAccess: false
-  #serviceAccountName: gitlab-runner-admin
+  clusterWideAccess: true
+  serviceAccountName: gitlab-runner
 
 podSecurityPolicy:
     enabled: false

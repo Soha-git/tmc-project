@@ -71,8 +71,7 @@ stages:
 HelmIngress:helm:
   stage: helm
   image: alpine/helm:3.8.1  
-  tags:
-    - k8s
   script:
-    - helm install --namespace dev --create-namespace app-go app-dev-golang/
+    - helm package app-dev-golang
+    - 'curl --request POST --user gitlab-token:$CI_JOB_TOKEN --form "chart=app-dev-golang-0.1.0.tgz" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/api/<channel>/charts"'
 
