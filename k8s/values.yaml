@@ -60,7 +60,7 @@ runners:
   privileged: true
 
   ## Namespace to run Kubernetes jobs in (defaults to the same namespace of this release)
-  namespace: gitlab
+  #namespace: gitlab
 
   ## Distributed runners caching
   cache: {}
