@@ -82,8 +82,7 @@ Helm:Helm:
   image: ${CI_REGISTRY_IMAGE}:base-0.1
   tags:
     - k8s
-  variables:
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: default 
+  
   script:
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
     - helm install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
