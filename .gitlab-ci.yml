@@ -13,7 +13,6 @@ stages:
     - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
-
 # Hadolint:lint:
 #   stage: lint
 #   image: hadolint/hadolint:v2.9.2-alpine
@@ -46,9 +45,13 @@ AppImage:build:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-  artifacts:
-    paths:
-    - public
+
+notifyBuild:
+  stage: .post
+  image: alpine:latest
+  script:
+    - apk --no-cache add curl
+    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
     #- sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh  
 
 # TestServer|Test:
@@ -94,11 +97,5 @@ AppImage:build:
 #     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
   
 notify:
-  stage: build
-  image: alpine:latest
-  needs:
-    - job: AppImage:build
-  script:
-    - apk --no-cache add curl
-    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh ✅
+
 
