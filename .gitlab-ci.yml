@@ -96,6 +96,6 @@ notifyBuild:
 #     - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
 #     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
   
-notify:
+
 
 
