@@ -32,9 +32,9 @@ stages:
 
 AppImage:build:
   stage: build
-  needs: 
-    - "Hadolint:lint"
-    - "Golint:lint"
+  # needs: 
+  #   - "Hadolint:lint"
+  #   - "Golint:lint"
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
