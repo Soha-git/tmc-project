@@ -46,7 +46,9 @@ AppImage:build:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-
+  artifacts:
+    paths:
+    - public
     #- sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh  
 
 # TestServer|Test:
@@ -93,11 +95,10 @@ AppImage:build:
   
 notify:
   stage: notify
-  image: 
-    name: alpine/curl:3.14
-    entrypoint: ["/bin/sh"]
+  image: alpine:latest
   needs:
     - job: AppImage:build
   script:
+    - 'apk --no-cache add curl'
     - sh .ci-notify.sh
 
