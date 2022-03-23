@@ -90,8 +90,13 @@ AppImage:build:
 #     - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
 #     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
   
-notify_error:
+notify:
   stage: notify
+  image: alpine/curl:3.14
+  environment: /bin/sh
   script:
-  - sh .ci-notify.sh
-  when: on_failure
+    - sh .ci-notify.sh
+  only:
+    variables:
+      - $CI_JOB_NAME == 'AppImage:build'
+      - $CI_JOB_STATUS == success
