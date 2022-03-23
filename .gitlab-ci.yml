@@ -45,9 +45,10 @@ AppImage:build:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-
+  artifacts:
+    paths:
+      - public
 notifyBuild:
-  stage: .post
   image: alpine:latest
   script:
     - apk --no-cache add curl
