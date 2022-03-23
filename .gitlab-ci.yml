@@ -5,6 +5,7 @@ stages:
   - Test
   - helm
   - Deploy
+  - notify
 
 .helm:
   image: dtzar/helm-kubectl:3.8
@@ -12,6 +13,7 @@ stages:
     - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+
 # Hadolint:lint:
 #   stage: lint
 #   image: hadolint/hadolint:v2.9.2-alpine
@@ -22,22 +24,29 @@ stages:
 #   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
 #   script:
 #     - golangci-lint run 
-# AppImage:build:
-#   stage: build
-#   needs: 
-#     - "Hadolint:lint"
-#     - "Golint:lint"
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
+# Helmlint:lint:
+#   stage: lint
+#   extends: .helm
 #   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-#       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+#     - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
+
+AppImage:build:
+  stage: build
+  needs: 
+    - "Hadolint:lint"
+    - "Golint:lint"
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh  
 
 # TestServer|Test:
 #   stage: Test 
@@ -54,18 +63,35 @@ stages:
 #   script:
 #     - go test -v ./test/request_test.go 
 
-HelmPackage:build:
-  stage: build
-  extends: .helm
-  script:
-    - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang 
-    - helm cm-push app-golang-chart-0.1.0.tgz project-1
+# HelmPackage:build:
+#   stage: build
+#   extends: .helm
+#   needs: ["Helmlint:lint"]
+#   script:
+#     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang 
+#     - helm cm-push app-golang-chart-0.1.0.tgz project-1
 
-Prometheus:Helm:
-  stage: helm
-  extends: .helm
-  tags:
-    - k8s
-  script:
-    - helm install stable prometheus-community/kube-prometheus-stack
+# Prometheus:Helm:
+#   stage: helm
+#   extends: .helm
+#   tags:
+#     - k8s
+#   script:
+#     - helm install --namespace prometheus --create-namespace stable prometheus-community/kube-prometheus-stack
 
+
+
+# k8s_deploy:deploy:
+#   stage: deploy
+#   extends: .helm
+#   tags:
+#     - k8s
+#   script:
+#     - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
+#     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
+  
+notify_error:
+  stage: notify
+  script:
+  - sh .ci-notify.sh
+  when: on_failure
