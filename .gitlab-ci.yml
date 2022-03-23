@@ -99,6 +99,6 @@ notify:
   needs:
     - job: AppImage:build
   script:
-    - 'apk --no-cache add curl'
-    - sh .ci-notify.sh
+    - apk --no-cache add curl
+    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
 
