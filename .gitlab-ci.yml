@@ -94,11 +94,11 @@ AppImage:build:
 #     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
   
 notify:
-  stage: notify
+  stage: build
   image: alpine:latest
   needs:
     - job: AppImage:build
   script:
     - apk --no-cache add curl
-    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
+    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh ✅
 
