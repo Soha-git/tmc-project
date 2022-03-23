@@ -6,33 +6,22 @@ stages:
   - helm
   - Deploy
 
-
+.helm:
+  image: alpine/helm:3.8.1
+  before_script:
+    - helm plugin install https://github.com/chartmuseum/helm-push
+    - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
 # Hadolint:lint:
 #   stage: lint
 #   image: hadolint/hadolint:v2.9.2-alpine
 #   script:
-#     - hadolint ${CI_PROJECT_DIR}/build/base-images/dockerfile
 #     - hadolint dockerfile
 # Golint:lint:
 #   stage: lint
 #   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
 #   script:
 #     - golangci-lint run 
-
-# BaseImage:build:
-#   stage: build
-#   needs: ["Hadolint:lint"]
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-#       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
 # AppImage:build:
 #   stage: build
 #   needs: 
@@ -53,9 +42,6 @@ stages:
 # TestServer|Test:
 #   stage: Test 
 #   image: tetafro/golang-gcc:1.17-alpine
-#   services:
-#     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
-#       alias: server
 #   script:
 #     - go test -v ./test/server_test.go 
 
@@ -70,20 +56,16 @@ stages:
 
 HelmPackage:build:
   stage: build
-  image: ${CI_REGISTRY_IMAGE}:base-0.1
+  extends: .helm
   script:
-    - helm plugin install https://github.com/chartmuseum/helm-push
-    - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang 
     - helm cm-push app-golang-chart-0.1.0.tgz project-1
 
-Helm:Helm:
+Prometheus:Helm:
   stage: helm
-  image: ${CI_REGISTRY_IMAGE}:base-0.1
+  extends: .helm
   tags:
     - k8s
-
   script:
-    - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
-    - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
+    - helm install stable prometheus-community/kube-prometheus-stack
 

@@ -1,5 +1,5 @@
 replicaCount: 3
-
+namespace: app-dev
 image:
   repository: registry.gitlab.com/sorokinalexander/golang-application
   pullPolicy: Always
@@ -26,3 +26,10 @@ secret:
   name: registry-credentials
   data:
     values: eyJhdXRocyI6eyJyZWdpc3RyeS5naXRsYWIuY29tIjp7ImF1dGgiOiJhM1ZpWlMxd2RXeHNPbHB6Vm5CT1dGTXhVSHBUVXpKRk5IWmhOREZrIn19fQ==
+
+
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
