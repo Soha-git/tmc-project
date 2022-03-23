@@ -7,7 +7,7 @@ stages:
   - Deploy
 
 .helm:
-  image: alpine/helm:3.8.1
+  image: dtzar/helm-kubectl:3.8
   before_script:
     - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
