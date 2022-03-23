@@ -46,6 +46,7 @@ AppImage:build:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+
     #- sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh  
 
 # TestServer|Test:
@@ -92,11 +93,11 @@ AppImage:build:
   
 notify:
   stage: notify
-  image: alpine/curl:3.14
-  environment: /bin/sh
+  image: 
+    name: alpine/curl:3.14
+    entrypoint: ["/bin/sh"]
+  needs:
+    - job: AppImage:build
   script:
     - sh .ci-notify.sh
-  only:
-    variables:
-      - $CI_JOB_NAME == 'AppImage:build'
-      - $CI_JOB_STATUS == success
+
