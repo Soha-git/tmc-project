@@ -1,6 +1,37 @@
 #!/bin/bash
-TIME="10"
-URL="https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage"
-TEXT="$CI_JOB_STAGE status: $CI_JOB_STATUS%0A%0AProject:+${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}%0AURL:+$CI_PROJECT_URL/pipelines/$CI_PIPELINE_ID/%0ABranch:+$CI_COMMIT_REF_SLUG"
 
-curl -s --max-time $TIME -d "chat_id=$TELEGRAM_USER_ID&disable_web_page_preview=1&text=$TEXT" $URL > /dev/null
+token=$TELEGRAM_BOT_TOKEN 
+chat_id=$TELEGRAM_USER_ID    
+parse_mode=$PARSE_MODE
+message=$MESSAGE
+
+if [[ -z $token ]]
+then
+    echo 'Not passed required BOT_TOKEN environment variable' >&2
+    exit 1
+fi
+
+if [[ -z $chat_id ]]
+then
+    echo 'Not passed required CHAT_ID environment variable' >&2
+    exit 2
+fi
+
+if [[ -z $message ]]
+then
+    echo 'Not passed required MESSAGE environment variable' >&2
+    exit 3
+fi
+
+if [[ -z $parse_mode ]]
+then
+    parse_mode='Markdown'
+fi
+
+
+request="{\"text\":\"${message}\",\"parse_mode\":\"${parse_mode}\",\"chat_id\":${chat_id},\"disable_notification\":${disable_notification}}"
+
+curl -X POST \
+     -H "Content-Type: application/json" \
+     -d "${request}" \
+     "https://api.telegram.org/bot${token}/sendMessage"
