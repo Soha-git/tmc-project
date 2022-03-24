@@ -14,6 +14,10 @@ stages:
     - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+.notification:
+  image: alpine:latest
+  before_script:
+    - apk --no-cache add curl
 # Hadolint:lint:
 #   stage: lint
 #   image: hadolint/hadolint:v2.9.2-alpine
@@ -63,17 +67,20 @@ AppImage:build:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:$CI_COMMIT_TAG" 
-
-notifyBuild:
-  stage: notify
-  image: alpine:latest
- # needs: ["AppImage:build:"]
+  artifacts:
+    paths:
+      - images/
+Success_emails:
+  extends: .notification
+  allow_failure: true
   script:
-    - apk --no-cache add curl
     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
-  only:
-    -  ${CI_REGISTRY_IMAGE}:$CI_COMMIT_TAG 
-    #- sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh  
+    
+Failed_emails:
+  extends: .notification
+  script:
+    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
+  when: on_failure  
 
 # TestServer|Test:
 #   stage: Test 
