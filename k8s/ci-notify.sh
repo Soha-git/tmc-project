@@ -29,7 +29,7 @@ then
 fi
 
 
-request="{\"text\":\"${message}\",\"parse_mode\":\"${parse_mode}\",\"chat_id\":${chat_id},\"disable_notification\":${disable_notification}}"
+request="{\"text\":\"${message}\",\"parse_mode\":\"${parse_mode}\",\"chat_id\":${chat_id}}"
 
 curl -X POST \
      -H "Content-Type: application/json" \
