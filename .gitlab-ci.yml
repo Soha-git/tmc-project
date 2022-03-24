@@ -18,6 +18,7 @@ stages:
   image: alpine:latest
   before_script:
     - apk --no-cache add curl
+    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
 # Hadolint:lint:
 #   stage: lint
 #   image: hadolint/hadolint:v2.9.2-alpine
@@ -67,15 +68,15 @@ AppImage:build:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:$CI_COMMIT_TAG" 
-  artifacts:
-    paths:
-      - images/
+  extends: .notification    
+
 Success_emails:
   stage: notify
   extends: .notification
-  allow_failure: true
   script:
     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
+  rules:
+    - if: ($CI_JOB_NAME == "AppImage:build" || $CI_JOB_STATUS == "success")
 
 Failed_emails:
   stage: notify
@@ -117,14 +118,16 @@ Failed_emails:
 
 
 
-# k8s_deploy:deploy:
-#   stage: deploy
-#   extends: .helm
-#   tags:
-#     - k8s
-#   script:
-#     - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
-#     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
+k8s_deploy:deploy:
+  stage: deploy
+  extends: .helm
+  tags:
+    - k8s
+  script:
+    - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
+  only:
+    - main
+    - master   
   
 
 
