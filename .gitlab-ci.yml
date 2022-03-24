@@ -105,7 +105,7 @@ Failed_emails:
     - if: '$CI_JOB_STAGE == "build"'
     - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_BRANCH == "master"
     - if: $CI_JOB_STAGE == "deploy" 
-      when: on_failure
+  when: on_failure
 # TestServer|Test:
 #   stage: Test 
 #   image: tetafro/golang-gcc:1.17-alpine
