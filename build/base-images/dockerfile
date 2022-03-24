@@ -43,5 +43,5 @@ RUN mkdir -p /kaniko/.docker &&\
 USER gitlab
 WORKDIR /home/gitlab
 ENV PATH="/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:$PATH"
-ENTRYPOINT [ "/bin/sh" ]
+
 
