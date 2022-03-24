@@ -53,24 +53,18 @@ AppImage:build:
   #   - "Hadolint:lint"
   #   - "Golint:lint"
   image:
-    name: ${CI_REGISTRY_IMAGE}:base-0.1
-    #entrypoint: [""]
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
     - mkdir -p /kaniko/.docker
-    - |-
-       KANIKOPROXYBUILDARGS=""
-       KANIKOCFG="\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}"
-       if [ "x${http_proxy}" != "x" -o "x${https_proxy}" != "x" ]; then
-         KANIKOCFG="${KANIKOCFG}, \"proxies\": { \"default\": { \"httpProxy\": \"${http_proxy}\", \"httpsProxy\": \"${https_proxy}\", \"noProxy\": \"${no_proxy}\"}}"
-         KANIKOPROXYBUILDARGS="--build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy} --build-arg no_proxy=${no_proxy}"
-       fi
-       KANIKOCFG="{ ${KANIKOCFG} }"
-       echo "${KANIKOCFG}" > /kaniko/.docker/config.json
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - >-
-      kaniko 
-      --cache=true --context "${CI_PROJECT_DIR}"  
-      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile" 
-      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:$CI_COMMIT_TAG"
+  only:
+    - tags    
 
 # notifyBuild:
 #   stage: notify
