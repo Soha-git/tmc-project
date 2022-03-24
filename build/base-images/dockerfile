@@ -40,7 +40,6 @@ COPY --from=tools /usr/bin/helm /usr/bin/helm
 COPY --from=build /usr/local/go/bin/ /usr/local/go/bin/
 RUN mkdir -p /kaniko/.docker &&\
     chown -R gitlab:root /kaniko
-USER gitlab
 WORKDIR /home/gitlab
 ENV PATH="/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:$PATH"
 
