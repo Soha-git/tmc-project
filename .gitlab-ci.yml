@@ -33,7 +33,7 @@ stages:
 
 BaseImage:build:
   stage: build
-  needs: ["Hadolint:lint"]
+  #needs: ["Hadolint:lint"]
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
