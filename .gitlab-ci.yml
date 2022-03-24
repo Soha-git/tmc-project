@@ -8,7 +8,7 @@ stages:
   - deploy
 
 before_script:
-  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+  - docker login -u $CI_REGISTRY_USER -p $CI_BUILD_TOKEN $CI_REGISTRY
 
 .helm:
   image: dtzar/helm-kubectl:3.8
