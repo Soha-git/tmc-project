@@ -70,9 +70,9 @@ dependency_scanning:
      DOCKER_DRIVER: overlay2
    allow_failure: true
    services:
-     - setup_docker
      - docker:stable-dind
    script:
+     - setup_docker
      - dependency_scanning
    artifacts:
      paths: [gl-dependency-scanning-report.json]
