@@ -70,7 +70,7 @@ dependency_scanning:
      DOCKER_DRIVER: overlay2
    allow_failure: true
    services:
-     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+     - name: '${CI_REGISTRY_IMAGE}:latest'
        alias: server
    script:
      - setup_docker
