@@ -102,7 +102,7 @@ Failed_emails:
     - apk --no-cache add curl
     - sh ./ci-notify.sh
   rules:
-    - if: '$CI_JOB_STAGE == "deploy" || ($CI_COMMIT_BRANCH == "main"| $CI_COMMIT_BRANCH == "master)"'
+    - if: '$CI_JOB_STAGE == "deploy" || ($CI_COMMIT_BRANCH == "main"| $CI_COMMIT_BRANCH == "master")'
       when: on_failure
 # TestServer|Test:
 #   stage: Test 
