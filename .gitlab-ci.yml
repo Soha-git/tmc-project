@@ -83,7 +83,7 @@ Success_emails:
       $CI_PIPELINE_URL
   script:
     - apk --no-cache add curl
-    - sh ${CI_PROJECT_DIR}/ci-notify.sh
+    - sh ${CI_PROJECT_DIR}/.ci-notify.sh
 
 Failed_emails:
   stage: notify
