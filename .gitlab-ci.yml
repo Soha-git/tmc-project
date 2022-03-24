@@ -71,12 +71,14 @@ AppImage:build:
     paths:
       - images/
 Success_emails:
+  stage: notify
   extends: .notification
   allow_failure: true
   script:
     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
-    
+
 Failed_emails:
+  stage: notify
   extends: .notification
   script:
     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
