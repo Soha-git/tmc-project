@@ -31,20 +31,20 @@ stages:
 #     - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
 
 
-# BaseImage:build:
-#   stage: build
-#   #needs: ["Hadolint:lint"]
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-#       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
+BaseImage:build:
+  stage: build
+  #needs: ["Hadolint:lint"]
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:base-0.1"
 
 
 AppImage:build:
