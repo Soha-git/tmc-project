@@ -6,7 +6,6 @@ stages:
   - notify
   - helm
   - deploy
-  - notify
 
 .helm:
   image: dtzar/helm-kubectl:3.8
@@ -84,7 +83,9 @@ Success_emails:
   script:
     - apk --no-cache add curl
     - sh ./ci-notify.sh
-
+  rules:
+    - if: '$CI_JOB_STAGE == "build"'
+    - if: '$CI_JOB_STAGE == "deploy" || ($CI_COMMIT_BRANCH == "main"| $CI_COMMIT_BRANCH == "master)"'
 Failed_emails:
   stage: notify
   image: 
@@ -98,9 +99,9 @@ Failed_emails:
       $CI_PIPELINE_URL
   script:
     - apk --no-cache add curl
-    - ${CI_PROJECT_DIR}/ci-notify.sh
+    - sh ./ci-notify.sh
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_JOB_STAGE == "deploy" || ($CI_COMMIT_BRANCH == "main"| $CI_COMMIT_BRANCH == "master)"'
       when: on_failure
 # TestServer|Test:
 #   stage: Test 

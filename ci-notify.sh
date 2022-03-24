@@ -3,7 +3,7 @@
 token=$TELEGRAM_BOT_TOKEN 
 chat_id=$TELEGRAM_USER_ID    
 parse_mode=$PARSE_MODE
-message=$MESSAGE
+$MESSAGE
 
 if [[ -z $token ]]
 then
