@@ -73,7 +73,6 @@ Success_emails:
   stage: notify
   image: 
     name: alpine:3.14
-    entrypoint: ["/bin/bash"]
   variables:
     MESSAGE:
     |
@@ -90,7 +89,6 @@ Failed_emails:
   stage: notify
   image: 
     name: alpine:3.14
-    entrypoint: ["/bin/sh"]
   variables:
     MESSAGE: |
       ❌ Error build \*$CI_PROJECT_NAME:$CI_COMMIT_BRANCH\*
