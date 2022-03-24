@@ -72,7 +72,7 @@ stages:
 Success_emails:
   stage: notify
   image: 
-    name: alpine/curl:3.14
+    name: alpine:3.14
     entrypoint: ["/bin/bash"]
   variables:
     MESSAGE:
@@ -83,12 +83,13 @@ Success_emails:
       Commit by: \*$CI_COMMIT_AUTHOR\*
       $CI_PIPELINE_URL
   script:
-    - ${CI_PROJECT_DIR}/ci-notify.sh
+    - apk --no-cache add curl
+    - sh ${CI_PROJECT_DIR}/ci-notify.sh
 
 Failed_emails:
   stage: notify
   image: 
-    name: alpine/curl:3.14
+    name: alpine:3.14
     entrypoint: ["/bin/sh"]
   variables:
     MESSAGE: |
@@ -98,6 +99,7 @@ Failed_emails:
       Commit by: \*$CI_COMMIT_AUTHOR\*
       $CI_PIPELINE_URL
   script:
+    - apk --no-cache add curl
     - ${CI_PROJECT_DIR}/ci-notify.sh
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
