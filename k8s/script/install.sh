@@ -1,28 +1,22 @@
 #!/bin/bash
 
-sudo apt-get remove docker docker.io containerd runc
-sudo apt-get update
-sudo apt-get -y install \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release
-
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg  
+sudo apt-get remove docker docker.io containerd runc -y
 
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update -y  
-sudo apt-get install -y containerd.io
+sudo apt-get install -y docker.io
 
 sudo apt-get install -y apt-transport-https ca-certificates curl
 sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
 echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 sudo apt-get update -y
-sudo apt-get install -y kubelet kubeadm kubectl
-sudo apt-mark hold kubelet kubeadm kubectl
+sudo apt-get install -y  kubectl
 
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
 
 curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
   && chmod +x minikube
@@ -95,7 +89,7 @@ runners:
         namespace = "{{.Release.Namespace}}"
         image = "ubuntu:16.04"
 
-  tags: "k8s,dev"
+  tags: "stages
 
 
 
@@ -131,3 +125,5 @@ configMaps: {}
 
 EOF
 
+helm repo add gitlab https://charts.gitlab.io
+helm install --namespace gitlab-runner --create-namespace  gitlab-runner -f values.yaml gitlab/gitlab-runner

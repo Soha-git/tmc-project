@@ -3,6 +3,7 @@ stages:
   - lint
   - build
   - Test
+  - notify
   - helm
   - Deploy
   - notify
@@ -29,30 +30,45 @@ stages:
 #   script:
 #     - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
 
+
+# BaseImage:build:
+#   stage: build
+#   needs: ["Hadolint:lint"]
+#   image:
+#     name: gcr.io/kaniko-project/executor:debug
+#     entrypoint: [""]
+#   script:
+#     - mkdir -p /kaniko/.docker
+#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+#     - >-
+#       /kaniko/executor
+#       --cache=true --context "${CI_PROJECT_DIR}"
+#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+#       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
+
+
 AppImage:build:
   stage: build
   # needs: 
   #   - "Hadolint:lint"
   #   - "Golint:lint"
   image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+    name: ${CI_REGISTRY_IMAGE}:base-0.1"
+    #entrypoint: [""]
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+    - kaniko --cache=true --context "${CI_PROJECT_DIR}"  --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile" --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
   artifacts:
     paths:
       - public
-notifyBuild:
-  image: alpine:latest
-  script:
-    - apk --no-cache add curl
-    - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
+# notifyBuild:
+#   stage: notify
+#   image: alpine:latest
+#   needs: ["AppImage:build:"]
+#   script:
+#     - apk --no-cache add curl
+#     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
     #- sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh  
 
 # TestServer|Test:
