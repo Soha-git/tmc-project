@@ -85,7 +85,7 @@ Success_emails:
     - sh ./ci-notify.sh
   rules:
     - if: '$CI_JOB_STAGE == "build"'
-    - if: ($CI_COMMIT_BRANCH == "main"| $CI_COMMIT_BRANCH == "master)"
+    - if: $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_BRANCH == "master"
     - if: $CI_JOB_STAGE == "deploy" 
 Failed_emails:
   stage: notify
