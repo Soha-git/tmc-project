@@ -67,7 +67,7 @@ AppImage:build:
 notifyBuild:
   stage: notify
   image: alpine:latest
-  needs: ["AppImage:build:"]
+ # needs: ["AppImage:build:"]
   script:
     - apk --no-cache add curl
     - sh ${CI_PROJECT_DIR}/k8s/ci-notify.sh
