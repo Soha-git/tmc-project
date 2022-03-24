@@ -73,7 +73,7 @@ Success_emails:
   stage: notify
   image: 
     name: alpine/curl:3.14
-    entrypoint: ["/bin/sh"]
+    entrypoint: ["/bin/bash"]
   variables:
     MESSAGE:
     |
