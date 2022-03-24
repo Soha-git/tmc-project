@@ -5,7 +5,7 @@ stages:
   - Test
   - notify
   - helm
-  - Deploy
+  - deploy
   - notify
 
 .helm:
