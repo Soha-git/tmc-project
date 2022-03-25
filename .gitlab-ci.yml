@@ -8,9 +8,6 @@ stages:
   - deploy
 
 
-variables:
-  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
 .helm:
   image: dtzar/helm-kubectl:3.8
   before_script:
@@ -51,18 +48,25 @@ AppImage:build:
       /kaniko/executor
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/dockerfile"
-      --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+      --destination $CI_REGISTRY_IMAGE:$CI_BUILD_REF
 
-release-image:
+release-image-main:
   stage: release
   image: docker:19.03.12
   services:
   - docker:19.03.12-dind
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CONTAINER_TEST_IMAGE
-    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
-    - docker push $CONTAINER_RELEASE_IMAGE
+    - docker pull $CI_REGISTRY_IMAGE:$CI_BUILD_REF
+    - docker tag $CI_REGISTRY_IMAGE:$CI_BUILD_REF $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - master
+    - main
+
+
+
+
   # only:
   #   - main      
 # HelmPackage:build:
