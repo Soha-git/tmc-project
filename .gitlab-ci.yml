@@ -14,6 +14,7 @@ stages:
     - helm plugin install https://github.com/chartmuseum/helm-push
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+
 #### Lint ####
 # Hadolint:lint:
 #   stage: lint
@@ -46,7 +47,7 @@ AppImage:build:
     - >-
       /kaniko/executor
       --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
+      --dockerfile "${CI_PROJECT_DIR}/dockerfile"
       --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
     
 #      --destination "$CI_REGISTRY_IMAGE:$CI_BUILD_REF"  
