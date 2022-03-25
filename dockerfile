@@ -1,3 +1,4 @@
+#### build application ######
 FROM golang:1.17.7-alpine3.14 as build
 
 RUN mkdir app
@@ -6,7 +7,7 @@ WORKDIR /go/app
 RUN go mod download && \
     CGO_ENABLED=0 go build -o main . 
 
-
+#### Base image #####
 FROM alpine:3.14 as base
 
 RUN addgroup go-app &&\
@@ -18,5 +19,6 @@ COPY  --from=build /go/app/main /app/main
 RUN  chown -R go-app:go-app /app
 
 WORKDIR /app
+USER go-app
 
 ENTRYPOINT [ "./main" ]
