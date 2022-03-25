@@ -48,8 +48,6 @@ AppImage:build:
       --cache=true --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination $CI_REGISTRY_IMAGE:$$CI_REGISTRY_IMAGE:$$CI_COMMIT_TAG
-  rules:
-    - if: $CI_COMMIT_TAG
     
 #      --destination "$CI_REGISTRY_IMAGE:$CI_BUILD_REF"  
 # HelmPackage:build:
