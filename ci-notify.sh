@@ -2,36 +2,68 @@
 
 token=$TELEGRAM_BOT_TOKEN 
 chat_id=$TELEGRAM_USER_ID    
-parse_mode=$PARSE_MODE
-$MESSAGE
+WEBHOOKURL="https://api.telegram.org/bot${token}/sendMessage"
 
-if [[ -z $token ]]
-then
-    echo 'Not passed required BOT_TOKEN environment variable' >&2
-    exit 1
-fi
+FAILURE=1
+SUCCESS=0
 
-if [[ -z $chat_id ]]
-then
-    echo 'Not passed required CHAT_ID environment variable' >&2
-    exit 2
-fi
+function print_telegram_summary_build() {
 
-if [[ -z $message ]]
-then
-    echo 'Not passed required MESSAGE environment variable' >&2
-    exit 3
-fi
+msg_header=":x: *Build to ${ENVIRONMENTNAME} failed*"
 
-if [[ -z $parse_mode ]]
-then
-    parse_mode='Markdown'
-fi
+if [[ "${EXIT_STATUS}" == "${SUCCESS}" ]]; then
+        msg_header=":heavy_check_mark: *Build to ${ENVIRONMENTNAME} succeeded*"
+        id_channel="$chat_id"
+    fi
+cat <<-SLACK
+            {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "${msg_header}"
+                        }
+                    },
+                    {
+                        "type": "divider"
+                    },
+                    {
+                        "type": "section",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Stage:*\n${CI_JOB_STAGE}"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Pushed By:*\n${GITLAB_USER_NAME}"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Job URL:*\nGITLAB_REPO_URL/${CI_JOB_ID}"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Commit URL:*\nGITLAB_REPO_URL$(git rev-parse HEAD)"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Commit Branch:*\n${CI_COMMIT_REF_NAME}"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "divider"
+                    }
+                ]
+}
+SLACK
+}
 
-
-request="{\"text\":\"${message}\",\"parse_mode\":\"${parse_mode}\",\"chat_id\":${chat_id}}"
-
-curl -X POST \
-     -H "Content-Type: application/json" \
-     -d "${request}" \
-     "https://api.telegram.org/bot${token}/sendMessage"
+function share_telegram_update_build() {
+telegram_webhook="$WEBHOOKURL"
+curl -X POST                                           \
+        --data-urlencode "payload=$(print_telegram_summary_build)"  \
+        "${telegram_webhook}" \ chat_id\":${chat_id}
+}
