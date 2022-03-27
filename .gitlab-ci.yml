@@ -60,7 +60,7 @@ BaseImage:build:
     - >-
       /kaniko/executor
       --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/build/dockerfile"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/dockerfile"
       --destination "${CI_REGISTRY_IMAGE}:base-0.1"
 AppImage:build:
   stage: build
