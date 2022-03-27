@@ -1,43 +1,27 @@
 #!/bin/bash
+gitlab_tags="prod"
+gitlab_url="https://gitlab.com/"
+gitlab_token="GR1348941hGZkgiMbSFNerF1gPsP4"
 
-sudo apt-get remove docker docker.io containerd runc -y
-
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update -y  
-sudo apt-get install -y docker.io
-
-sudo apt-get install -y apt-transport-https ca-certificates curl
-sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-sudo apt-get update -y
-sudo apt-get install -y  kubectl
-
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-
-curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
-  && chmod +x minikube
-
-sudo mkdir -p /usr/local/bin/
-sudo install minikube /usr/local/bin/
-
-minikube start
+#### minikube run #####
+minikube start --driver=docker
 
 kubectl version
 
+#### Enable plagin minikube #####
 minikube addons enable ingress
+minikube addons enable metrics-server
 
+
+#### creating  config faile for gitlab-runner ######
 cat <<EOF > values.yaml
 imagePullPolicy: IfNotPresent
 
 ## The GitLab Server URL (with protocol) that want to register the runner against
-gitlabUrl: https://gitlab.com/
+gitlabUrl: $gitlab_url
 
 ## The Registration Token for adding new Runners to the GitLab Server.
-runnerRegistrationToken: "GR1348941hGZkgiMbSFNerF1gPsP4"
+runnerRegistrationToken: "$gitlab_token"
 
 ## Unregister all runners before termination
 unregisterRunners: true
@@ -89,7 +73,7 @@ runners:
         namespace = "{{.Release.Namespace}}"
         image = "ubuntu:16.04"
 
-  tags: "stages
+  tags: "$gitlab_tags"
 
 
 
@@ -125,5 +109,35 @@ configMaps: {}
 
 EOF
 
+#### ServiceAccount gitlab-runner ######
+kubectl create namespace gitlab-runner
+
+cat <<EOF | kubectl apply -f -
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gitlab
+  namespace: gitlab-runner 
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gitlab
+  namespace: gitlab-runner
+subjects:
+  - kind: Group
+    name: system:serviceaccounts
+    namespace: gitlab-runner
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+
+EOF
+#### install gitlab-runner ######
 helm repo add gitlab https://charts.gitlab.io
 helm install --namespace gitlab-runner --create-namespace  gitlab-runner -f values.yaml gitlab/gitlab-runner
+
+

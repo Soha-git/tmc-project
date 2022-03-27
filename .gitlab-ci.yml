@@ -8,6 +8,10 @@ stages:
   - deploy
 
 
+variables:
+  CONTAINER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
 .helm:
   image: dtzar/helm-kubectl:3.8
   before_script:
@@ -15,29 +19,38 @@ stages:
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
 
-#### Lint ####
+# #### Lint ####
 # Hadolint:lint:
 #   stage: lint
 #   image: hadolint/hadolint:v2.9.2-alpine
 #   script:
 #     - hadolint dockerfile
+#   except:
+#     - main
+#     - master
+
 # Golint:lint:
 #   stage: lint
 #   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
 #   script:
 #     - golangci-lint run 
+#   except:
+#     - main
+#     - master
+
 # Helmlint:lint:
 #   stage: lint
 #   extends: .helm
 #   script:
 #     - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
+#   except:
+#     - main
+#     - master
 
 #### Build ####
-AppImage:build:
+BaseImage:build:
   stage: build
-  # needs: 
-  #   - "Hadolint:lint"
-  #   - "Golint:lint"
+  #needs: ["Hadolint:lint"]
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -47,28 +60,27 @@ AppImage:build:
     - >-
       /kaniko/executor
       --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/dockerfile"
-      --destination $CI_REGISTRY_IMAGE:$CI_BUILD_REF
-
-release-image-main:
-  stage: release
-  image: docker:19.03.12
-  services:
-  - docker:19.03.12-dind
+      --dockerfile "${CI_PROJECT_DIR}/build/dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:base-0.1"
+AppImage:build:
+  stage: build
+  # needs: 
+  #   - "Hadolint:lint"
+  #   - "Golint:lint"
+  image:
+    name: ${CI_REGISTRY_IMAGE}:base-0.1
+    entrypoint: [""]
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull $CI_REGISTRY_IMAGE:$CI_BUILD_REF
-    - docker tag $CI_REGISTRY_IMAGE:$CI_BUILD_REF $CI_REGISTRY_IMAGE:latest
-    - docker push $CI_REGISTRY_IMAGE:latest
-  only:
-    - master
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/dockerfile"
+      --destination $CONTAINER_IMAGE
+  except:
     - main
+    - master
 
-
-
-
-  # only:
-  #   - main      
 # HelmPackage:build:
 #   stage: build
 #   extends: .helm
@@ -76,13 +88,23 @@ release-image-main:
 #   script:
 #     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang
 #     - helm cm-push app-golang-chart-0.1.0.tgz project-1
+#   except:
+#     - main
+#     - master
 
-#### Test ######
+# #### Test ######
+
 # TestServer|TestImage:
 #   stage: Test 
 #   image: tetafro/golang-gcc:1.17-alpine
+#   services:
+#     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+#       alias: server
 #   script:
 #     - go test -v ./test/server_test.go 
+#   except:
+#     - main
+#     - master
 
 # TestRequest|TestImage:
 #   stage: Test
@@ -92,43 +114,70 @@ release-image-main:
 #       alias: server
 #   script:
 #     - go test -v ./test/request_test.go 
+#   except:
+#     - main
+#     - master
 
-###### Release ######
+# ###### Release ######
+
+# release-image-main:
+#   stage: release
+#   image: docker:19.03.12
+#   services:
+#   - docker:19.03.12-dind
+#   script:
+#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#     - docker pull $CONTAINER_IMAGE
+#     - docker tag $CONTAINER_IMAGE $CONTAINER_RELEASE_IMAGE
+#     - docker push $CONTAINER_RELEASE_IMAGE
+#   only:
+#     - master
+#     - main
 
 
-# k8s_stages:deploy:
-#   stage: stages
-#   extends: .helm
+# # Prometheus:Helm:
+# #   stage: staging
+# #   extends: .helm
+# #   tags:
+# #     - stages
+# #   script:
+# #     - helm install --namespace prometheus --create-namespace stable prometheus-community/kube-prometheus-stack
+
+
+# .helm_auth: &helm_auth
+#   - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+
+
+# .prod_deploy:
+#   image: dtzar/helm-kubectl:3.8
+#   before_script: *helm_auth
+#   tags:
+#     - prod
+#   script:
+#     - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart  
+
+# .staging_deploy:
+#   image: dtzar/helm-kubectl:3.8
+#   before_script: *helm_auth
 #   tags:
 #     - stages
 #   script:
-#     - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
+#     - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart  
 
+# deploy to staging:
+#   <<: *staging_deploy
+#   when: manual
+#   except:
+#     - master
+#     - main
 
-    
+# deploy to production:
+#   <<: *prod_deploy
+#   when: manual
+#   only:
+#     - master
+#     - main
 
-
-# Prometheus:Helm:
-#   stage: helm
-#   extends: .helm
-#   tags:
-#     - k8s
-#   script:
-#     - helm install --namespace prometheus --create-namespace stable prometheus-community/kube-prometheus-stack
-
-
-
-k8s_production_deploy:deploy:
-  stage: deploy
-  extends: .helm
-  tags:
-    - k8s
-  script:
-    - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart
-  only:
-    - main
-    - master   
-  when: manual
 
 
 

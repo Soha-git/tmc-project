@@ -1,7 +1,7 @@
 replicaCount: 3
 namespace: app-dev
 image:
-  repository: ${CI_REGISTRY_IMAGE}
+  repository: registry.gitlab.com/sorokinalexander/golang-application
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
@@ -31,5 +31,5 @@ secret:
 autoscaling:
   minReplicas: 1
   maxReplicas: 20
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
