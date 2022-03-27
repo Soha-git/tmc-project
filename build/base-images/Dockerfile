@@ -51,7 +51,6 @@ COPY --from=tools /usr/bin/kubectl /usr/local/bin/kubectl
 COPY --from=tools /usr/bin/helm /usr/bin/helm
 COPY --from=build /usr/local/go/bin/ /usr/local/go/bin/
 ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko
-ENV DOCKER_CONFIG /kaniko/.docker/
 WORKDIR /home/gitlab
 
 
