@@ -1,19 +1,17 @@
 #!/bin/bash
-
-token=$TELEGRAM_BOT_TOKEN 
-chat_id=$TELEGRAM_USER_ID    
-WEBHOOKURL="https://api.telegram.org/bot${token}/sendMessage"
-
+set -euo pipefail
 FAILURE=1
 SUCCESS=0
-
-function print_telegram_summary_build() {
-
-msg_header=":x: *Build to ${CI_COMMIT_BRANCH} failed*"
-
+SLACKWEBHOOKURL="https://hooks.slack.com/services/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"
+function print_slack_summary_build() {
+local slack_msg_header
+    local slack_msg_body
+    local slack_channel
+# Populate header and define slack channels
+slack_msg_header=":x: ${CI_JO_STAGE} to ${CI_COMMIT_BRANCH} failed*"
 if [[ "${EXIT_STATUS}" == "${SUCCESS}" ]]; then
-        msg_header=":heavy_check_mark: *Build to ${CI_COMMIT_BRANCH} succeeded*"
-        id_channel="$chat_id"
+        slack_msg_header=":heavy_check_mark: *Build to ${CI_COMMIT_BRANCH} succeeded*"
+        #slack_channel="$CHANNEL_TEST"
     fi
 cat <<-SLACK
             {
@@ -22,7 +20,7 @@ cat <<-SLACK
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "${msg_header}"
+                            "text": "${slack_msg_header}"
                         }
                     },
                     {
@@ -33,7 +31,7 @@ cat <<-SLACK
                         "fields": [
                             {
                                 "type": "mrkdwn",
-                                "text": "*Stage:*\n${CI_JOB_STAGE}"
+                                "text": "*Stage:*\n${CI_JO_STAGE}"
                             },
                             {
                                 "type": "mrkdwn",
@@ -42,6 +40,10 @@ cat <<-SLACK
                             {
                                 "type": "mrkdwn",
                                 "text": "*Job URL:*\nGITLAB_REPO_URL/${CI_JOB_ID}"
+                            },
+                            {
+                                "type": "mrkdwn",
+                                "text": "*Commit URL:*\nGITLAB_REPO_URL$(git rev-parse HEAD)"
                             },
                             {
                                 "type": "mrkdwn",
@@ -56,10 +58,10 @@ cat <<-SLACK
 }
 SLACK
 }
-
-function share_telegram_update_build() {
-telegram_webhook="$WEBHOOKURL"
+function share_slack_update_build() {
+local slack_webhook
+slack_webhook="$SLACKWEBHOOKURL"
 curl -X POST                                           \
-        --data-urlencode "payload=$(print_telegram_summary_build)"  \
-        "${telegram_webhook}" \ chat_id\":${chat_id}
+        --data-urlencode "payload=$(print_slack_summary_build)"  \
+        "${slack_webhook}"
 }
