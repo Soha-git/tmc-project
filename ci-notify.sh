@@ -9,10 +9,10 @@ SUCCESS=0
 
 function print_telegram_summary_build() {
 
-msg_header=":x: *Build to ${ENVIRONMENTNAME} failed*"
+msg_header=":x: *Build to ${CI_COMMIT_BRANCH} failed*"
 
 if [[ "${EXIT_STATUS}" == "${SUCCESS}" ]]; then
-        msg_header=":heavy_check_mark: *Build to ${ENVIRONMENTNAME} succeeded*"
+        msg_header=":heavy_check_mark: *Build to ${CI_COMMIT_BRANCH} succeeded*"
         id_channel="$chat_id"
     fi
 cat <<-SLACK
@@ -42,10 +42,6 @@ cat <<-SLACK
                             {
                                 "type": "mrkdwn",
                                 "text": "*Job URL:*\nGITLAB_REPO_URL/${CI_JOB_ID}"
-                            },
-                            {
-                                "type": "mrkdwn",
-                                "text": "*Commit URL:*\nGITLAB_REPO_URL$(git rev-parse HEAD)"
                             },
                             {
                                 "type": "mrkdwn",
