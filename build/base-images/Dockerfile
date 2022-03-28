@@ -10,7 +10,7 @@ WORKDIR /go/src/github.com/GoogleContainerTools
 
 RUN set -eux && \
     mkdir ./kaniko && \
-    wget -O /tmp/kaniko.tar.gz \
+    wget -nv -O /tmp/kaniko.tar.gz \
     https://github.com/GoogleContainerTools/kaniko/archive/refs/tags/v$KANIKO_RELEASE.tar.gz && \
     tar -xvf /tmp/kaniko.tar.gz -C ./kaniko --strip-components 1
 
