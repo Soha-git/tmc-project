@@ -59,6 +59,6 @@ RUN helm plugin install https://github.com/chartmuseum/helm-push &&\
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko
 WORKDIR /home/gitlab
-ENTRYPOINT [ "/bin/sh" ]
+
 
 
