@@ -70,7 +70,7 @@ variables:
 AppImage:build:
   stage: build
   needs: 
-    - "BaseImage:build"
+   # - "BaseImage:build"
   #   - "Hadolint:lint"
   #   - "Golint:lint"
   image:
