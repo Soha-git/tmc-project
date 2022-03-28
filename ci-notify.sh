@@ -28,7 +28,7 @@ cat <<-SLACK
                         "fields": [
                             {
                                 "type": "mrkdwn",
-                                "text": "*Stage:*\n${CI_JO_STAGE}"
+                                "text": "*Stage:*\n${CI_JOB_STAGE}"
                             },
                             {
                                 "type": "mrkdwn",

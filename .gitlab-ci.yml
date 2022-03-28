@@ -76,7 +76,7 @@ AppImage:build:
   image:
     name: ${CI_REGISTRY_IMAGE}:$CI_COMMIT_SHORT_SHA
   script:
-    - mkdir -p /kaniko/.docker
+    - mkdir  /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - >-
       /kaniko/executor
