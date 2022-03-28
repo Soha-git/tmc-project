@@ -4,7 +4,7 @@ FROM golang:1.17.7-alpine3.14 as build
 RUN apk add --update --no-cache git=~2 make=~4 bash=~5 && rm -f /var/cache/apk/*
 
 ARG GOARCH=amd64
-ARG KANIKO_RELEASE="1.8.0"
+ARG KANIKO_RELEASE="1.7.0"
 
 WORKDIR /go/src/github.com/GoogleContainerTools
 
@@ -59,6 +59,6 @@ RUN helm plugin install https://github.com/chartmuseum/helm-push &&\
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko
 WORKDIR /home/gitlab
-ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT [ "/bin/sh" ]
 
 
