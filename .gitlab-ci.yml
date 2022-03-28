@@ -79,11 +79,7 @@ AppImage:build:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
   script:
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/dockerfile"
-      --destination $CONTAINER_IMAGE
+    -  /kaniko/executor --cache=true --context "${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/dockerfile"--destination $CONTAINER_IMAGE
   except:
     - main
     - master
