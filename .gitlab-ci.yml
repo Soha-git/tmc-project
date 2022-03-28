@@ -69,12 +69,12 @@ BaseImage:build:
 
 AppImage:build:
   stage: build
-  # needs: 
-  #   - "BaseImage:build"
+  needs: 
+    - "BaseImage:build"
   #   - "Hadolint:lint"
   #   - "Golint:lint"
   image:
-    name: ${CI_REGISTRY_IMAGE}:CI_COMMIT_SHORT_SHA
+    name: ${CI_REGISTRY_IMAGE}:$CI_COMMIT_SHORT_SHA
     entrypoint: [""]
   script:
     - mkdir -p /kaniko/.docker
