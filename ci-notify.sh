@@ -6,9 +6,9 @@ SLACKWEBHOOKURL="https://hooks.slack.com/services/T038N79TXDZ/B039765JJE5/K3dXoe
 
 function print_slack_summary_build() {
 # Populate header and message 
-slack_msg_header=":x: ${CI_JO_STAGE} to ${CI_COMMIT_BRANCH} failed*"
+slack_msg_header=":x: ${CI_JOB_STAGE} to ${CI_COMMIT_BRANCH} failed*"
 if [[ "${EXIT_STATUS}" == "${SUCCESS}" ]]; then
-        slack_msg_header=":heavy_check_mark: ${CI_JO_STAGE} to ${CI_COMMIT_BRANCH} succeeded*"
+        slack_msg_header=":heavy_check_mark: ${CI_JOB_STAGE} to ${CI_COMMIT_BRANCH} succeeded*"
     fi
 cat <<-SLACK
             {

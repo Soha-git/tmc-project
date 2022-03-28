@@ -4,7 +4,7 @@ FROM golang:1.17.7-alpine3.14 as build
 RUN apk add --update --no-cache git=~2 make=~4 bash=~5 && rm -f /var/cache/apk/*
 
 ARG GOARCH=amd64
-ARG KANIKO_RELEASE="1.6.0"
+ARG KANIKO_RELEASE="1.8.0"
 
 WORKDIR /go/src/github.com/GoogleContainerTools
 
