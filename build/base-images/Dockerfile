@@ -49,7 +49,7 @@ RUN addgroup gitlab &&\
     chmod g=u /home/gitlab/ &&\
     chmod g=u /etc/passwd
 
-COPY --from=build /go/src/github.com/GoogleContainerTools/kaniko/out/executor /usr/bin/kaniko
+COPY --from=build /go/src/github.com/GoogleContainerTools/kaniko/out/executor /kaniko/executor
 COPY --from=build /go/src/github.com/GoogleContainerTools/kaniko/out/warmer /kaniko/warmer
 COPY --from=tools /usr/bin/kubectl /usr/local/bin/kubectl
 COPY --from=tools /usr/bin/helm /usr/bin/helm
