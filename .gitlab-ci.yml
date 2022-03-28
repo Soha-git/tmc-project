@@ -54,7 +54,7 @@ BaseImage:build:
   #needs: ["Hadolint:lint"]
   image:
     name: gcr.io/kaniko-project/executor:debug
-    entrypoint: ["/kaniko/executor"]
+    entrypoint: [""]
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
@@ -75,8 +75,7 @@ AppImage:build:
   #   - "Golint:lint"
   image:
     name: "${CI_REGISTRY_IMAGE}:base-$CI_COMMIT_SHORT_SHA"
-    entrypoint:
-      - [""]
+    entrypoint: ["/kaniko/executor"]
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
