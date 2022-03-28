@@ -22,7 +22,7 @@ Hadolint:lint:
   stage: lint
   image: hadolint/hadolint:v2.9.2-alpine
   script:
-    - hadolint ${CI_PROJECT_DIR}/build/base-images/dockerfile
+    - hadolint ${CI_PROJECT_DIR}/build/base-images/Dockerfile
     - hadolint dockerfile
   except:
     - main
