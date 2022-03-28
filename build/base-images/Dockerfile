@@ -1,3 +1,4 @@
+##### build kaniko #####
 FROM golang:1.17.7-alpine3.14 as build
 
 RUN apk add --update --no-cache git=~2 make=~4 bash=~5 && rm -f /var/cache/apk/*
@@ -18,11 +19,13 @@ WORKDIR /go/src/github.com/GoogleContainerTools/kaniko
 RUN mkdir -p /kaniko/.docker && \
     make && make out/warmer
 
-
+##### base image ######
 FROM alpine:3.14 as base
 
 RUN apk add --update --no-cache curl=~7 wget=~1 unzip=~6 ca-certificates=~20211220-r0 bash=~5 git=~2 gcc=~10 && rm -f /var/cache/apk/*
 
+
+##### Tools #####
 FROM base as tools
 
 WORKDIR /tmp

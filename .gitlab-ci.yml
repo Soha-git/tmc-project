@@ -22,6 +22,7 @@ Hadolint:lint:
   stage: lint
   image: hadolint/hadolint:v2.9.2-alpine
   script:
+    - hadolint ${CI_PROJECT_DIR}/build/base-images/dockerfile
     - hadolint dockerfile
   except:
     - main
@@ -62,7 +63,8 @@ BaseImage:build:
       --destination "${CI_REGISTRY_IMAGE}:base0.1"
   except:
     - main
-    - master    
+    - master
+
 AppImage:build:
   stage: build
   needs: 
@@ -102,6 +104,8 @@ HelmPackage:build:
 TestServer|TestImage:
   stage: Test 
   image: tetafro/golang-gcc:1.17-alpine
+  needs:
+    - "AppImage:build"
   services:
     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
       alias: server
@@ -114,6 +118,8 @@ TestServer|TestImage:
 TestRequest|TestImage:
   stage: Test
   image: tetafro/golang-gcc:1.17-alpine
+  needs:
+    - "AppImage:build"
   services:
     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
       alias: server
