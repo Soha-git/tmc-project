@@ -49,30 +49,9 @@ variables:
 #     - master
 
 # #### Build ####
-# BaseImage:build:
-#   stage: build
-#   #needs: ["Hadolint:lint"]
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/Dockerfile"
-#       --destination "${CI_REGISTRY_IMAGE}:$CI_BUILD_REF"
-#   except:
-#     - main
-#     - master
-
-AppImage:build:
+BaseImage:build:
   stage: build
-  needs: 
-   # - "BaseImage:build"
-  #   - "Hadolint:lint"
-  #   - "Golint:lint"
+  #needs: ["Hadolint:lint"]
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -81,15 +60,36 @@ AppImage:build:
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - >-
       /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}" 
-      --dockerfile "${CI_PROJECT_DIR}/dockerfile"
-      --destination ${CI_REGISTRY_IMAGE}:$CI_COMMIT_SHORT_SHA
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:base-$CI_COMMIT_SHORT_SHA"
   except:
     - main
     - master
-  # after_script:
-  #   - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
-  #   - source ./ci-notify.sh; share_slack_update_build
+
+AppImage:build:
+  stage: build
+  needs: 
+    - "BaseImage:build"
+  #   - "Hadolint:lint"
+  #   - "Golint:lint"
+  image:
+    name: "${CI_REGISTRY_IMAGE}:base-$CI_COMMIT_SHORT_SHA"
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      kaniko
+      --cache=true --context "${CI_PROJECT_DIR}" 
+      --dockerfile "${CI_PROJECT_DIR}/dockerfile"
+      --destination ${CI_REGISTRY_IMAGE}:$CI_COMMIT_SHORT_SHA
+      --skip-tls-verify
+  except:
+    - main
+    - master
+  after_script:
+    - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
+    - source ./ci-notify.sh; share_slack_update_build
 
 # HelmPackage:build:
 #   stage: build
