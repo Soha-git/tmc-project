@@ -241,7 +241,7 @@ runners:
   ##
   ## ref: https://docs.gitlab.com/ee/ci/runners/configure_runners.html#use-tags-to-control-which-jobs-a-runner-can-run
   ##
-  tags: "k8s,dev"
+  tags: "prod"
 
   ## Specify the name for the runner.
   ##
