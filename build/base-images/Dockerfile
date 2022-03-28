@@ -39,6 +39,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN wget -nv  -O - https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz | tar -xz &&\
     mv /tmp/linux-amd64/helm /usr/bin/helm &&\
     chmod 765 /usr/bin/helm
+    
 FROM base
 
 RUN addgroup gitlab &&\

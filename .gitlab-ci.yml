@@ -91,7 +91,9 @@ AppImage:build:
 HelmPackage:build:
   stage: build
   extends: .helm
-  needs: ["Helmlint:lint"]
+  needs: 
+    - "Helmlint:lint"
+    - "BaseImage:build"
   script:
     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang
     - helm cm-push app-golang-chart-0.1.0.tgz project-1
