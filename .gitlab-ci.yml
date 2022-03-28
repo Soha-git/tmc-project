@@ -76,6 +76,7 @@ AppImage:build:
   image:
     name: "${CI_REGISTRY_IMAGE}:base-$CI_COMMIT_SHORT_SHA"
   script:
+    - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - >-
       /kaniko/executor
@@ -86,7 +87,7 @@ AppImage:build:
     - main
     - master
   tags:
-    - dev  
+    - "dev"  
   after_script:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
