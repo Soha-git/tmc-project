@@ -57,7 +57,7 @@ COPY --from=build /usr/local/go/bin/ /usr/local/go/bin/
 
 RUN helm plugin install https://github.com/chartmuseum/helm-push &&\
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-RUN mkdir /kaniko &&\
+RUN mkdir -p /kaniko &&\
     chown -R gitlab:root /kaniko    
 USER gitlab
 ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/bin/kubectl
