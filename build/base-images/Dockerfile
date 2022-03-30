@@ -50,19 +50,16 @@ RUN addgroup gitlab &&\
     chmod g=u /etc/passwd
 
 
-COPY --from=build /go/src/github.com/GoogleContainerTools/kaniko/out/executor /kaniko/executor
+COPY --from=build /go/src/github.com/GoogleContainerTools/kaniko/out/executor /usr/bin/kaniko
 COPY --from=tools /usr/bin/kubectl /usr/bin/kubectl
 COPY --from=tools /usr/bin/helm /usr/bin/helm
 COPY --from=build /usr/local/go/bin/ /usr/local/go/bin/
 
-RUN chown -R gitlab:root /kaniko &&\
-    chown gitlab:root /usr/bin/kubectl
-
 RUN helm plugin install https://github.com/chartmuseum/helm-push &&\
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-USER gitlab    
+USER gitlab
 RUN mkdir -p /home/gitlab/.docker
-ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/bin/kubectl:/kaniko
+ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/bin/kubectl
 WORKDIR /home/gitlab
 
 
