@@ -36,7 +36,7 @@ cat <<-SLACK
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Job URL:*\nGITLAB_REPO_URL/${CI_JOB_ID}"
+                                "text": "*Job URL:*\nGITLAB_REPO_URL/${GITLAB_REPO_URL}"
                             },
                             {
                                 "type": "mrkdwn",
