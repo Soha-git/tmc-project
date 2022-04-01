@@ -9,11 +9,12 @@ RUN go mod download && \
 
 #### Base image #####
 FROM alpine:3.14 as base
+RUN  apk add --update --no-cache  ca-certificates=~20211220-r0
 
 RUN addgroup go-app &&\
-    adduser -S -G go-app go-app
-RUN apk add -update --no-cache ca-certificates=~20211220-r0 &&\
+    adduser -S -G go-app go-app &&\
     mkdir /app  
+
 COPY  --from=build /go/app/main /app/main 
 
 RUN  chown -R go-app:go-app /app
