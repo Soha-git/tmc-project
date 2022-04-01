@@ -13,68 +13,67 @@ variables:
   CONTAINER_RELEASE_IMAGE: ${CI_REGISTRY_IMAGE}:latest
 
 .helm:
-  image: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  image: dtzar/helm-kubectl:3.8
   before_script:
+    - helm plugin install https://github.com/chartmuseum/helm-push &&\
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+    - helm repo add grafana https://grafana.github.io/helm-charts
+    - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
 # #### Lint ####
-# Hadolint:lint:
-#   stage: lint
-#   image: hadolint/hadolint:v2.9.2-alpine
-#   script:
-#     - hadolint ${CI_PROJECT_DIR}/build/base-images/Dockerfile
-#     - hadolint dockerfile
-#   except:
-#     - main
-#     - master
-
-# Golint:lint:
-#   stage: lint
-#   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
-#   script:
-#     - golangci-lint run 
-#   except:
-#     - main
-#     - master
-
-# Helmlint:lint:
-#   stage: lint
-#   image: dtzar/helm-kubectl:3.8
-#   before_script:
-#     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
-#   script:
-#     - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
-#   except:
-#     - main
-#     - master
-
-# #### Build ####
-BaseImage:build:
-  stage: build
-  #needs: ["Hadolint:lint"]
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+Hadolint:lint:
+  stage: lint
+  image: hadolint/hadolint:v2.9.2-alpine
   script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/build/base-images/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:base-$CI_COMMIT_SHORT_SHA"
+    - hadolint ${CI_PROJECT_DIR}/build/base-images/Dockerfile
+    - hadolint dockerfile
   except:
     - main
     - master
 
+Golint:lint:
+  stage: lint
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+  script:
+    - golangci-lint run 
+  except:
+    - main
+    - master
+
+Helmlint:lint:
+  stage: lint
+  image: dtzar/helm-kubectl:3.8
+  script:
+    - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
+  except:
+    - main
+    - master
+
+# #### Build ####
+# BaseImage:build:
+#   stage: build
+#   #needs: ["Hadolint:lint"]
+#   image:
+#     name: gcr.io/kaniko-project/executor:debug
+#     entrypoint: [""]
+#   script:
+#     - mkdir -p /kaniko/.docker
+#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+#     - >-
+#       /kaniko/executor
+#       --cache=true --context "${CI_PROJECT_DIR}"
+#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/Dockerfile"
+#       --destination "${CI_REGISTRY_IMAGE}:base-$CI_COMMIT_SHORT_SHA"
+#   except:
+#     - main
+#     - master
+
 AppImage:build:
   stage: build
   needs: 
-    - "BaseImage:build"
-  #   - "Hadolint:lint"
-  #   - "Golint:lint"
-  image:
-    name: "${CI_REGISTRY_IMAGE}:base-$CI_COMMIT_SHORT_SHA"
+    - "Hadolint:lint"
+    - "Golint:lint"
+  extends: .helm
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
@@ -90,18 +89,17 @@ AppImage:build:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
 
-# HelmPackage:build:
-#   stage: build
-#   extends: .helm
-#   needs: 
-#     - "Helmlint:lint"
-#     - "BaseImage:build"
-#   script:
-#     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang
-#     - helm cm-push app-golang-chart-0.1.0.tgz project-1
-#   except:
-#     - main
-#     - master
+HelmPackage:build:
+  stage: build
+  extends: .helm
+  needs: 
+    - "Helmlint:lint"
+  script:
+    - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang
+    - helm cm-push app-golang-chart-0.1.0.tgz project-1
+  except:
+    - main
+    - master
 
 # #### Test ######
 
