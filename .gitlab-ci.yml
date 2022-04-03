@@ -111,7 +111,7 @@ TestServer|TestImage:
   needs:
     - "AppImage:build"
   services:
-    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+    - name: '${$CONTAINER_IMAGE}'
       alias: server
   script:
     - go test -v ./test/server_test.go 
@@ -125,7 +125,7 @@ TestRequest|TestImage:
   needs:
     - "AppImage:build"
   services:
-    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+    - name: '${$CONTAINER_IMAGE}'
       alias: server
   script:
     - go test -v ./test/request_test.go 
