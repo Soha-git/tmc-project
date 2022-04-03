@@ -4,7 +4,7 @@ gitlab_url="https://gitlab.com/"
 gitlab_token="GR1348941hGZkgiMbSFNerF1gPsP4"
 
 #### minikube run #####
-minikube start --driver=docker --container-runtime='containerd' 
+minikube start --driver=docker --container-runtime='containerd' --kubernetes-version=v1.21.2 --extra-config=kubelet.housekeeping-interval=10s
 
 kubectl version
 

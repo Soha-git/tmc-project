@@ -105,7 +105,7 @@ HelmPackage:build:
 
 # # #### Test ######
 
-TestServer|TestImage:
+TestServer:TestImage:
   stage: test 
   image: tetafro/golang-gcc:1.17-alpine
   needs:
@@ -119,7 +119,7 @@ TestServer|TestImage:
     - main
     - master
 
-TestRequest|TestImage:
+TestRequest:TestImage:
   stage: test
   image: tetafro/golang-gcc:1.17-alpine
   needs:
@@ -160,7 +160,7 @@ Prometheus:Staging:
   tags:
     - prod
   script:
-    - helm install --namespace prometheus --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
+    - helm upgrade --install --namespace prometheus --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
 
 
 .helm_auth: &helm_auth
