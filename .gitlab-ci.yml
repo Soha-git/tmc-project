@@ -179,7 +179,6 @@ Prometheus:Helm:
 
 .staging_deploy:
   image: dtzar/helm-kubectl:3.8
-  stage: staging
   before_script: *helm_auth
   tags:
     - dev
@@ -191,6 +190,7 @@ Prometheus:Helm:
 
 deploy to staging:
   <<: *staging_deploy
+  stage: deploy
   when: manual
   except:
     - master
