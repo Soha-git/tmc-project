@@ -166,7 +166,7 @@ Prometheus:Helm:
   - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
 
 
-.prod_deploy:
+.prod_deploy: &prod_deploy
   image: dtzar/helm-kubectl:3.8
   before_script: *helm_auth
   tags:
@@ -177,7 +177,7 @@ Prometheus:Helm:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
 
-.staging_deploy:
+.staging_deploy: &staging_deploy
   image: dtzar/helm-kubectl:3.8
   before_script: *helm_auth
   tags:
@@ -190,7 +190,6 @@ Prometheus:Helm:
 
 deploy to staging:
   <<: *staging_deploy
-  stage: deploy
   when: manual
   except:
     - master
