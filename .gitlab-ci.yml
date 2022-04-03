@@ -21,33 +21,33 @@ variables:
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
 # #### Lint ####
-# Hadolint:lint:
-#   stage: lint
-#   image: hadolint/hadolint:v2.9.2-alpine
-#   script:
-#     - hadolint ${CI_PROJECT_DIR}/build/base-images/Dockerfile
-#     - hadolint dockerfile
-#   except:
-#     - main
-#     - master
+Hadolint:lint:
+  stage: lint
+  image: hadolint/hadolint:v2.9.2-alpine
+  script:
+    - hadolint ${CI_PROJECT_DIR}/build/base-images/Dockerfile
+    - hadolint dockerfile
+  except:
+    - main
+    - master
 
-# Golint:lint:
-#   stage: lint
-#   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
-#   script:
-#     - golangci-lint run 
-#   except:
-#     - main
-#     - master
+Golint:lint:
+  stage: lint
+  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+  script:
+    - golangci-lint run 
+  except:
+    - main
+    - master
 
-# Helmlint:lint:
-#   stage: lint
-#   image: dtzar/helm-kubectl:3.8
-#   script:
-#     - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
-#   except:
-#     - main
-#     - master
+Helmlint:lint:
+  stage: lint
+  image: dtzar/helm-kubectl:3.8
+  script:
+    - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
+  except:
+    - main
+    - master
 
 # #### Build ####
 # BaseImage:build:
@@ -70,9 +70,9 @@ variables:
 
 AppImage:build:
   stage: build
-  # needs: 
-  #   - "Hadolint:lint"
-  #   - "Golint:lint"
+  needs: 
+    - "Hadolint:lint"
+    - "Golint:lint"
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -91,47 +91,47 @@ AppImage:build:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
 
-# HelmPackage:build:
-#   stage: build
-#   extends: .helm
-#   needs: 
-#     - "Helmlint:lint"
-#   script:
-#     - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang
-#     - helm cm-push app-golang-chart-0.1.0.tgz project-1
-#   except:
-#     - main
-#     - master
+HelmPackage:build:
+  stage: build
+  extends: .helm
+  needs: 
+    - "Helmlint:lint"
+  script:
+    - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang
+    - helm cm-push app-golang-chart-0.1.0.tgz project-1
+  except:
+    - main
+    - master
 
 # # #### Test ######
 
-# TestServer|TestImage:
-#   stage: Test 
-#   image: tetafro/golang-gcc:1.17-alpine
-#   needs:
-#     - "AppImage:build"
-#   services:
-#     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
-#       alias: server
-#   script:
-#     - go test -v ./test/server_test.go 
-#   except:
-#     - main
-#     - master
+TestServer|TestImage:
+  stage: Test 
+  image: tetafro/golang-gcc:1.17-alpine
+  needs:
+    - "AppImage:build"
+  services:
+    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+      alias: server
+  script:
+    - go test -v ./test/server_test.go 
+  except:
+    - main
+    - master
 
-# TestRequest|TestImage:
-#   stage: Test
-#   image: tetafro/golang-gcc:1.17-alpine
-#   needs:
-#     - "AppImage:build"
-#   services:
-#     - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
-#       alias: server
-#   script:
-#     - go test -v ./test/request_test.go 
-#   except:
-#     - main
-#     - master
+TestRequest|TestImage:
+  stage: Test
+  image: tetafro/golang-gcc:1.17-alpine
+  needs:
+    - "AppImage:build"
+  services:
+    - name: '${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}'
+      alias: server
+  script:
+    - go test -v ./test/request_test.go 
+  except:
+    - main
+    - master
 
 # ###### Release ######
 
@@ -145,21 +145,21 @@ release-image-main:
     - docker pull $CONTAINER_IMAGE
     - docker tag $CONTAINER_IMAGE $CONTAINER_RELEASE_IMAGE
     - docker push $CONTAINER_RELEASE_IMAGE
-  # only:
-  #   - master
-  #   - main
+  only:
+    - master
+    - main
 after_script:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
 
 
-# Prometheus:Helm:
-#   stage: staging
-#   extends: .helm
-#   tags:
-#     - stages
-#   script:
-#     - helm install --namespace prometheus --create-namespace stable prometheus-community/kube-prometheus-stack
+Prometheus:Helm:
+  stage: staging
+  extends: .helm
+  tags:
+    - prod
+  script:
+    - helm install --namespace prometheus --create-namespace monitoring -f ${CI_PROJECT_DIR}/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
 
 
 .helm_auth: &helm_auth
@@ -181,19 +181,19 @@ after_script:
   image: dtzar/helm-kubectl:3.8
   before_script: *helm_auth
   tags:
-    - stages
+    - dev
   script:
     - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart  
   after_script:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
 
-# deploy to staging:
-#   <<: *staging_deploy
-#   when: manual
-#   except:
-#     - master
-#     - main
+deploy to staging:
+  <<: *staging_deploy
+  when: manual
+  except:
+    - master
+    - main
 
 # deploy to production:
 #   <<: *prod_deploy

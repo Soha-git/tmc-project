@@ -4,14 +4,13 @@ gitlab_url="https://gitlab.com/"
 gitlab_token="GR1348941hGZkgiMbSFNerF1gPsP4"
 
 #### minikube run #####
-minikube start --driver=docker 
+minikube start --driver=docker --container-runtime='containerd' 
 
 kubectl version
 
 #### Enable plagin minikube #####
-minikube addons enable ingress
 minikube addons enable metrics-server
-
+minikube addons enable ingress
 
 #### creating  config faile for gitlab-runner ######
 cat <<EOF > values.yaml

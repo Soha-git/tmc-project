@@ -2,7 +2,7 @@ alertmanager:
   config:
     global:
       resolve_timeout: 5m
-      slack_api_url: 'https://api.telegram.org/bot5208263611:AAHvcYZFoBf_QGlWlhIMBe38LV8DsvPrH8A/sendMessage'
+      slack_api_url: 'https://hooks.slack.com/services/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'
     route:
       group_by: ['alertname', 'cluster', 'service']
       group_wait: 30s
@@ -22,7 +22,7 @@ alertmanager:
     receivers:
     - name: 'default-receiver'
       slack_configs:
-      - channel: '535609684' # Ваш канал Slack для оповещений
+      - channel: '#monitoring' # Ваш канал Slack для оповещений
         username: 'Grafana-Kube'  # Имя, отображаемое в оповещении
         color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
         title: '[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] Prometheus Event Notification'
