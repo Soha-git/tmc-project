@@ -15,10 +15,10 @@ variables:
 .helm:
   image: dtzar/helm-kubectl:3.8
   before_script:
-    - helm plugin install https://github.com/chartmuseum/helm-push &&\
-    - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
-    - helm repo add grafana https://grafana.github.io/helm-charts
-    - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    - helm plugin install https://github.com/chartmuseum/helm-push 
+    - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN Helm-chart "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+    # - helm repo add grafana https://grafana.github.io/helm-charts
+    # - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
 # #### Lint ####
 Hadolint:lint:
@@ -97,8 +97,8 @@ HelmPackage:build:
   needs: 
     - "Helmlint:lint"
   script:
-    - helm package ${CI_PROJECT_DIR}/k8s/app-dev-golang
-    - helm cm-push app-golang-chart-0.1.0.tgz project-1
+    - helm package ${CI_PROJECT_DIR}/k8s/hello-golang
+    - helm cm-push hello-golang-chart-0.1.0.tgz Helm-chart
   except:
     - main
     - master
@@ -164,7 +164,7 @@ Prometheus:Staging:
 
 
 .helm_auth: &helm_auth
-  - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN project-1 "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
+  - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN Helm-chart "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
 
 
 .prod_deploy: &prod_deploy
@@ -174,7 +174,7 @@ Prometheus:Staging:
   tags:
     - prod
   script:
-    - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart  
+    - helm upgrade --install --namespace app-dev --create-namespace app-dev Helm-chart/Hello-golang-chart 
   after_script:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
@@ -191,7 +191,7 @@ Prometheus:Staging:
   tags:
     - dev
   script:
-    - helm upgrade --install --namespace app-dev --create-namespace app-dev project-1/app-golang-chart  
+    - helm upgrade --install --namespace app-dev --create-namespace app-dev Helm-chart/Hello-golang-chart  
   after_script:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
