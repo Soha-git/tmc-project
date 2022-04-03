@@ -183,8 +183,8 @@ Prometheus:Staging:
   image: dtzar/helm-kubectl:3.8
   stage: staging
   needs: 
-    - 'TestRequest|TestImage'
-    - 'TestServer|TestImage'
+    - 'TestRequest:TestImage'
+    - 'TestServer:TestImage'
     - 'HelmPackage:build'
     - 'Prometheus:Staging'
   before_script: *helm_auth
