@@ -2,14 +2,14 @@
 stages:
   - lint
   - build
-  - Test
+  - test
   - release
   - staging
   - deploy
 
 
 variables:
-  CONTAINER_IMAGE: ${CI_REGISTRY_IMAGE}:$CI_BUILD_REF
+  CONTAINER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_BUILD_REF}
   CONTAINER_RELEASE_IMAGE: ${CI_REGISTRY_IMAGE}:latest
 
 .helm:
@@ -106,12 +106,12 @@ HelmPackage:build:
 # # #### Test ######
 
 TestServer|TestImage:
-  stage: Test 
+  stage: test 
   image: tetafro/golang-gcc:1.17-alpine
   needs:
     - "AppImage:build"
   services:
-    - name: '${$CONTAINER_IMAGE}'
+    - name: '$CONTAINER_IMAGE'
       alias: server
   script:
     - go test -v ./test/server_test.go 
@@ -120,12 +120,12 @@ TestServer|TestImage:
     - master
 
 TestRequest|TestImage:
-  stage: Test
+  stage: test
   image: tetafro/golang-gcc:1.17-alpine
   needs:
     - "AppImage:build"
   services:
-    - name: '${$CONTAINER_IMAGE}'
+    - name: '$CONTAINER_IMAGE'
       alias: server
   script:
     - go test -v ./test/request_test.go 
@@ -153,8 +153,9 @@ after_script:
     - source ./ci-notify.sh; share_slack_update_build
 
 
-Prometheus:Helm:
+Prometheus:Staging:
   stage: staging
+  needs: []
   extends: .helm
   tags:
     - prod
@@ -168,6 +169,7 @@ Prometheus:Helm:
 
 .prod_deploy: &prod_deploy
   image: dtzar/helm-kubectl:3.8
+  stage: deploy
   before_script: *helm_auth
   tags:
     - prod
@@ -180,6 +182,10 @@ Prometheus:Helm:
 .staging_deploy: &staging_deploy
   image: dtzar/helm-kubectl:3.8
   stage: staging
+  needs: 
+    - 'TestRequest|TestImage'
+    - 'TestServer|TestImage'
+    - 'HelmPackage:build'
   before_script: *helm_auth
   tags:
     - dev
@@ -196,12 +202,12 @@ deploy to staging:
     - master
     - main
 
-# deploy to production:
-#   <<: *prod_deploy
-#   when: manual
-#   only:
-#     - master
-#     - main
+deploy to production:
+  <<: *prod_deploy
+  when: manual
+  only:
+    - master
+    - main
 
 
 
