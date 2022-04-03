@@ -44,7 +44,7 @@ Helmlint:lint:
   stage: lint
   image: dtzar/helm-kubectl:3.8
   script:
-    - helm lint ${CI_PROJECT_DIR}/k8s/app-dev-golang
+    - helm lint ${CI_PROJECT_DIR}/k8s/hello-golang
   except:
     - main
     - master
