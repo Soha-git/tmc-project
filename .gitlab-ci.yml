@@ -160,7 +160,7 @@ Prometheus:Staging:
   tags:
     - prod
   script:
-    - helm install --namespace prometheus --create-namespace monitoring -f ${CI_PROJECT_DIR}/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
+    - helm install --namespace prometheus --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
 
 
 .helm_auth: &helm_auth
@@ -186,6 +186,7 @@ Prometheus:Staging:
     - 'TestRequest|TestImage'
     - 'TestServer|TestImage'
     - 'HelmPackage:build'
+    - 'Prometheus:Staging'
   before_script: *helm_auth
   tags:
     - dev
