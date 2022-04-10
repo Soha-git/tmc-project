@@ -1,0 +1,6 @@
+/build
+/k8s
+/test
+.gitignore
+.dockerignore
+.gitlab-ci.yml

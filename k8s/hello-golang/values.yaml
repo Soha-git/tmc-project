@@ -1,0 +1,39 @@
+replicaCount: 3
+rollingUpdate:
+  maxSurgeCount: 1
+  maxUnavailableCount: 0
+  
+namespace: app-dev
+image:
+  repository: registry.gitlab.com/sorokinalexander/golang-application
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+imagePullSecrets: registry-credentials
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  className: "nginx"
+  hosts:
+    - host: hello-golang.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []  
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+secret:
+  name: registry-credentials
+  data:
+    values: eyJhdXRocyI6eyJyZWdpc3RyeS5naXRsYWIuY29tIjp7ImF1dGgiOiJhM1ZpWlMxd2RXeHNPbHB6Vm5CT1dGTXhVSHBUVXpKRk5IWmhOREZrIn19fQ==
+
+
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
