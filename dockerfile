@@ -1,4 +1,4 @@
-#### build application ######
+#### Building an application ######
 FROM golang:1.17.7-alpine3.14 as build
 
 RUN mkdir app

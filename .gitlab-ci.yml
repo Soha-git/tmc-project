@@ -20,7 +20,7 @@ variables:
     # - helm repo add grafana https://grafana.github.io/helm-charts
     # - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
-# #### Lint ####
+#-------------------------------------------- Lint---------------------------------------------------#
 Hadolint:lint:
   stage: lint
   image: hadolint/hadolint:v2.9.2-alpine
@@ -49,25 +49,7 @@ Helmlint:lint:
     - main
     - master
 
-# #### Build ####
-# BaseImage:build:
-#   stage: build
-#   #needs: ["Hadolint:lint"]
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/build/base-images/Dockerfile"
-#       --destination "${CI_REGISTRY_IMAGE}:base-$CI_COMMIT_SHORT_SHA"
-#   except:
-#     - main
-#     - master
-
+#------------------------- Build --------------------------------------------------------#
 AppImage:build:
   stage: build
   needs: 
@@ -103,7 +85,7 @@ HelmPackage:build:
     - main
     - master
 
-# # #### Test ######
+#---------------------------------------Test----------------------------------------------#
 
 TestServer:TestImage:
   stage: test 
@@ -133,7 +115,7 @@ TestRequest:TestImage:
     - main
     - master
 
-# ###### Release ######
+#------------------------------------------Release----------------------------------------------#
 
 release-image-main:
   stage: release
@@ -152,7 +134,7 @@ after_script:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
 
-
+#----------------------------------------------- Monitoring install ------------------------------------#
 Prometheus:Staging:
   stage: staging
   needs: []
@@ -161,8 +143,11 @@ Prometheus:Staging:
     - prod
   script:
     - helm upgrade --install --namespace prometheus --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
+  except:
+    - main
+    - master
 
-
+#-------------------------------------------- Deploy ---------------------------------------------------#
 .helm_auth: &helm_auth
   - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN Helm-chart "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
 
@@ -196,12 +181,12 @@ Prometheus:Staging:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
 
-deploy to staging:
-  <<: *staging_deploy
-  when: manual
-  except:
-    - master
-    - main
+# deploy to staging:
+#   <<: *staging_deploy
+#   when: manual
+#   except:
+#     - master
+#     - main
 
 deploy to production:
   <<: *prod_deploy

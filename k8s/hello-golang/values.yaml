@@ -1,4 +1,8 @@
 replicaCount: 3
+rollingUpdate:
+  maxSurgeCount: 1
+  maxUnavailableCount: 0
+  
 namespace: app-dev
 image:
   repository: registry.gitlab.com/sorokinalexander/golang-application
