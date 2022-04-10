@@ -25,7 +25,6 @@ Hadolint:lint:
   stage: lint
   image: hadolint/hadolint:v2.9.2-alpine
   script:
-    - hadolint ${CI_PROJECT_DIR}/build/base-images/Dockerfile
     - hadolint dockerfile
   except:
     - main
@@ -142,7 +141,7 @@ Prometheus:Staging:
   tags:
     - prod
   script:
-    - helm upgrade --install --namespace prometheus --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
+    - helm upgrade --install --namespace monitoring --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
   except:
     - main
     - master
