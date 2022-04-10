@@ -18,7 +18,7 @@ variables:
     - helm plugin install https://github.com/chartmuseum/helm-push 
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN Helm-chart "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
     # - helm repo add grafana https://grafana.github.io/helm-charts
-    # - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
 #-------------------------------------------- Lint---------------------------------------------------#
 Hadolint:lint:
