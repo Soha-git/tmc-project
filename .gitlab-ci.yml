@@ -116,7 +116,7 @@ TestRequest:TestImage:
 
 #------------------------------------------Release----------------------------------------------#
 
-release-image-main:
+release-image-tag:
   stage: release
   image: docker:19.03.12
   services:
@@ -126,7 +126,7 @@ release-image-main:
     - docker pull $CONTAINER_IMAGE
     - docker tag $CONTAINER_IMAGE $CONTAINER_RELEASE_IMAGE
     - docker push $CONTAINER_RELEASE_IMAGE
-  except:
+  only:
     - master
     - main
 after_script:
@@ -183,6 +183,7 @@ Prometheus:Staging:
 # deploy to staging:
 #   <<: *staging_deploy
 #   when: manual
+#   environment: staging
 #   except:
 #     - master
 #     - main
@@ -190,6 +191,7 @@ Prometheus:Staging:
 deploy to production:
   <<: *prod_deploy
   when: manual
+  environment: production
   only:
     - master
     - main
