@@ -107,8 +107,8 @@ AppImage:build:
 HelmPackage:build:
   stage: build
   extends: .helm
-  needs: 
-    - "Helmlint:lint"
+  # needs: 
+  #   - "Helmlint:lint"
   script:
     - tag=`cat .next-version`
     - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$tag"
