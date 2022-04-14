@@ -62,6 +62,7 @@ Helmlint:lint:
 AppImage:build:
   stage: build
   needs: 
+    - "version"
     - "Hadolint:lint"
     - "Golint:lint"
   image:
@@ -114,6 +115,7 @@ HelmPackage:build:
   stage: build
   extends: .helm
   needs: 
+    - "version"
     - "Helmlint:lint"
   script:
     - chartVersion=`cat .next-version`
