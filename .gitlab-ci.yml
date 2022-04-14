@@ -81,9 +81,9 @@ AppImage:build:
     - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
     - echo "RELEASE_VERSION=`cat .next-version`" >> build_info  
   artifacts:
+    name: "build_info"
     expose_as: 'build_info'
-    paths:
-    - build_info 
+    paths: ['build_info'] 
   except:
     - main
     - master
@@ -173,7 +173,7 @@ release:
   
   - ./release -v
   - ./release changelog
-  - ./release commit-and-tag --list-other-changes CHANGELOG.md release_info
+  - ./release commit-and-tag CHANGELOG.md release_info
   - ./release --ci-commit-tag v$RELEASE_VERSION add-download-link -n release -u $RELEASE_URL -d "$RELEASE_DESC"
 
   only:
@@ -261,7 +261,6 @@ Prometheus:Staging:
 deploy to production:
   <<: *prod_deploy
   when: manual
-  environment: production
   only:
     - master
     - main
