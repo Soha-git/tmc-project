@@ -8,10 +8,10 @@ metadata:
 spec: 
   replicas: {{ .Values.replicaCount }}
   strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxSurge: {{ .Values.rollingUpdate.maxSurgeCount }}
-    maxUnavailable: {{ .Values.rollingUpdate.maxUnavailableCount }}
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.rollingUpdate.maxSurgeCount }}
+      maxUnavailable: {{ .Values.rollingUpdate.maxUnavailableCount }}
   selector:
     matchLabels: *web-app
   template:
