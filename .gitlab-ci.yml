@@ -10,7 +10,7 @@ stages:
 
 
 variables:
-  CONTAINER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+  CONTAINER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   CONTAINER_RELEASE_IMAGE: ${CI_REGISTRY_IMAGE}:latest
 
 .helm:
@@ -172,7 +172,7 @@ pre-release:
   - docker push $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
 
   - release -v
-  - release commit-and-tag CHANGELOG.md pre_release_info
+  - release commit-and-tag CHANGELOG.md 
   - release --ci-commit-tag v$RELEASE_VERSION add-download-link -n release -u $RELEASE_URL -d "$RELEASE_DESC"
   when: manual
   only:
