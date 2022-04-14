@@ -62,40 +62,40 @@ version:
 #     - master
 
 #------------------------- Build --------------------------------------------------------#
-# AppImage:build:
-#   stage: build
-#   needs: 
-#     - "Hadolint:lint"
-#     - "Golint:lint"
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}" 
-#       --dockerfile "./dockerfile"
-#       --destination $CONTAINER_IMAGE
-#   except:
-#     - main
-#     - master
+AppImage:build:
+  stage: build
+  # needs: 
+  #   - "Hadolint:lint"
+  #   - "Golint:lint"
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}" 
+      --dockerfile "./dockerfile"
+      --destination $CONTAINER_IMAGE
+  except:
+    - main
+    - master
 #   after_script:
 #     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
 #     - source ./ci-notify.sh; share_slack_update_build
 
-AppImage:build:
-  stage: build
-  image: docker:stable
-  variables:
-    DOCKER_DRIVER: overlay2
-  services:
-  - docker:dind
-  script:
-  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-  - docker build --cache-from -t $CONTAINER_IMAGE .
-  - docker push $CONTAINER_IMAGE
+# AppImage:build:
+#   stage: build
+#   image: docker:stable
+#   variables:
+#     DOCKER_DRIVER: overlay2
+#   services:
+#   - docker:dind
+#   script:
+#   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+#   - docker build --cache-from -t $CONTAINER_IMAGE .
+#   - docker push $CONTAINER_IMAGE
   # - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
   # - echo "RELEASE_DESC=\"$(uname -mo) binary\"" >> build_info
   # - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
