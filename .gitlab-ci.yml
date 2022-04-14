@@ -79,6 +79,14 @@ AppImage:build:
       --cache=true --context "${CI_PROJECT_DIR}" 
       --dockerfile "./dockerfile"
       --destination ${CI_REGISTRY_IMAGE}:$tag
+    - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
+    - echo "RELEASE_DESC=\"$(uname -mo) binary\"" >> build_info
+    - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
+    - echo "RELEASE_VERSION=$(<.next-version)"
+    - echo "RELEASE_VERSION=$(<.next-version)" >> build_info
+  artifacts:
+    paths:
+    - build_info 
   except:
     - main
     - master
@@ -164,11 +172,13 @@ pre-release:
   services:
   - docker:dind
   script:
-  
+  - rm -f release_info
+  - mv build_info release_info
+  - . release_info
   
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-  - docker pull ${CI_REGISTRY_IMAGE}:$tag
-  - docker tag ${CI_REGISTRY_IMAGE}:$tag $CI_REGISTRY_IMAGE:latest
+  - docker pull ${CI_REGISTRY_IMAGE}:$RELEASE_VERSION
+  - docker tag ${CI_REGISTRY_IMAGE}:$RELEASE_VERSION $CI_REGISTRY_IMAGE:latest
   - docker push $CI_REGISTRY_IMAGE:latest
 
   - ./release -v
