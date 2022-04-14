@@ -71,13 +71,14 @@ AppImage:build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
+    - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - >-
       /kaniko/executor
       --cache=true --context "${CI_PROJECT_DIR}" 
       --dockerfile "./dockerfile"
-      --destination $CONTAINER_IMAGE
+      --destination ${CI_REGISTRY_IMAGE}:$tag
   except:
     - main
     - master
@@ -163,13 +164,12 @@ pre-release:
   services:
   - docker:dind
   script:
-  - RELEASE_VERSION=`cat .next-version`
   
   
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-  - docker pull $CONTAINER_IMAGE 
-  - docker tag $CONTAINER_IMAGE  $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
-  - docker push $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
+  - docker pull ${CI_REGISTRY_IMAGE}:$tag
+  - docker tag ${CI_REGISTRY_IMAGE}:$tag $CI_REGISTRY_IMAGE:latest
+  - docker push $CI_REGISTRY_IMAGE:latest
 
   - ./release -v
   - ./release commit-and-tag --list-other-changes CHANGELOG.md 
