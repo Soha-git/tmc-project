@@ -81,7 +81,7 @@ AppImage:build:
     - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
     - echo "RELEASE_VERSION=`cat .next-version`" >> build_info  
   artifacts:
-    expose_as: 'artifact 1'
+    expose_as: 'build_info'
     paths:
     - build_info 
   except:
