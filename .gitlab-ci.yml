@@ -120,7 +120,7 @@ HelmPackage:build:
   script:
     - chartVersion=`cat .next-version`
     - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$chartVersion"
-    - helm cm-push hello-golang-chart-chartVersion.tgz Helm-chart
+    - helm cm-push hello-golang-chart-$chartVersion.tgz Helm-chart
   except:
     - main
     - master
