@@ -168,7 +168,7 @@ pre-release:
   
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
   - docker pull $CONTAINER_IMAGE 
-  - docker tag $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
+  - docker tag $CONTAINER_IMAGE  $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
   - docker push $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
 
   - release -v
