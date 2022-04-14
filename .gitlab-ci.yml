@@ -178,9 +178,9 @@ pre-release:
   - docker pull ${CI_REGISTRY_IMAGE}:$RELEASE_VERSION
   - docker tag ${CI_REGISTRY_IMAGE}:$RELEASE_VERSION $CI_REGISTRY_IMAGE:latest
   - docker push $CI_REGISTRY_IMAGE:latest
-  - ls -la 
+  
   - ./release -v
-  - ./release commit-and-tag --list-other-changes CHANGELOG.md 
+  - ./release commit-and-tag --list-other-changes CHANGELOG.md release_info
   - ./release --ci-commit-tag v$RELEASE_VERSION add-download-link -n release -u $RELEASE_URL -d "$RELEASE_DESC"
   when: manual
   only:
