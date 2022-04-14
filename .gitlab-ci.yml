@@ -235,7 +235,7 @@ Prometheus:Staging:
   tags:
     - prod
   script:
-    - helm upgrade --install --namespace app-dev --create-namespace app-dev hello-golang-chart 
+    - helm upgrade --install --namespace app-dev --create-namespace app-dev Helm-chart/hello-golang-chart
 
 .staging_deploy: &staging_deploy
   image: dtzar/helm-kubectl:3.8
@@ -261,6 +261,7 @@ Prometheus:Staging:
 
 deploy to production:
   <<: *prod_deploy
+  needs: []
   when: manual
   only:
     - master
