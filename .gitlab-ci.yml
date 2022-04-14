@@ -10,7 +10,7 @@ stages:
 
 
 variables:
-  CONTAINER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}
+  CONTAINER_IMAGE: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
   CONTAINER_RELEASE_IMAGE: ${CI_REGISTRY_IMAGE}:latest
 
 .helm:
@@ -93,35 +93,34 @@ AppImage:build:
   services:
   - docker:dind
   script:
-  - tag=`cat .next-version`
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-  - docker build -t $CI_REGISTRY_IMAGE:v$tag .
-  - docker push $CI_REGISTRY_IMAGE:v$tag
-  - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
-  - echo "RELEASE_DESC=\"$(uname -mo) binary\"" >> build_info
-  - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
-  - echo "RELEASE_VERSION=$(<.next-version)" >> build_info
-  artifacts:
-    paths:
-    - build_info
+  - docker build --cache-from -t $CONTAINER_IMAGE .
+  - docker push $CONTAINER_IMAGE
+  # - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
+  # - echo "RELEASE_DESC=\"$(uname -mo) binary\"" >> build_info
+  # - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
+  # - echo "RELEASE_VERSION=$(<.next-version)" >> build_info
+  # artifacts:
+  #   paths:
+  #   - build_info
   except:
   - main
   - master
   - tags
 
 
-HelmPackage:build:
-  stage: build
-  extends: .helm
-  # needs: 
-  #   - "Helmlint:lint"
-  script:
-    - tag=`cat .next-version`
-    - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$tag"
-    - helm cm-push hello-golang-chart-$tag.tgz Helm-chart
-  except:
-    - main
-    - master
+# HelmPackage:build:
+#   stage: build
+#   extends: .helm
+#   # needs: 
+#   #   - "Helmlint:lint"
+#   script:
+#     - tag=`cat .next-version`
+#     - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$tag"
+#     - helm cm-push hello-golang-chart-$tag.tgz Helm-chart
+#   except:
+#     - main
+#     - master
 
 # #---------------------------------------Test----------------------------------------------#
 
@@ -164,17 +163,17 @@ pre-release:
   services:
   - docker:dind
   script:
-  - mv build_info pre_release_info
-  - . pre_release_info
+  - RELEASE_VERSION=`cat .next-version`
   
   
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-  - docker build -t $CI_REGISTRY_IMAGE:v$RELEASE_VERSION .
+  - docker pull $CONTAINER_IMAGE 
+  - docker tag $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
   - docker push $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
 
-  - ./release -v
-  - ./release commit-and-tag CHANGELOG.md pre_release_info
-  - ./release --ci-commit-tag v$RELEASE_VERSION add-download-link -n release -u $RELEASE_URL -d "$RELEASE_DESC"
+  - release -v
+  - release commit-and-tag CHANGELOG.md pre_release_info
+  - release --ci-commit-tag v$RELEASE_VERSION add-download-link -n release -u $RELEASE_URL -d "$RELEASE_DESC"
   when: manual
   only:
   - branches
