@@ -85,9 +85,6 @@ AppImage:build:
   except:
     - main
     - master
-#   after_script:
-#     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
-#     - source ./ci-notify.sh; share_slack_update_build
 
 # AppImage:build:
 #   stage: build
