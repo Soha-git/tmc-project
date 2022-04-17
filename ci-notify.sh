@@ -28,23 +28,23 @@ cat <<-SLACK
                         "fields": [
                             {
                                 "type": "mrkdwn",
-                                "text": "*Stage:*\n${CI_JOB_STAGE}"
+                                "text": "*Stage:*\n ${CI_JOB_STAGE}"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Pushed By:*\n${GITLAB_USER_NAME}"
+                                "text": "*Pushed By:*\n ${GITLAB_USER_NAME}"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Job URL:*\nGITLAB_REPO_URL/${GITLAB_REPO_URL}"
+                                "text": "*Job URL:*\n $GITLAB_REPO_URL/${GITLAB_REPO_URL}"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Commit URL:*\nGITLAB_REPO_URL$(git rev-parse HEAD)"
+                                "text": "*Commit URL:*\n $GITLAB_REPO_URL$(git rev-parse HEAD)"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Commit Branch:*\n${CI_COMMIT_REF_NAME}"
+                                "text": "*Commit Branch:*\n ${CI_COMMIT_REF_NAME}"
                             }
                         ]
                     },
