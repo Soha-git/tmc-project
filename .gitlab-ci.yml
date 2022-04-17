@@ -66,8 +66,8 @@ AppImage:build:
     # - "Hadolint:lint"
     # - "Golint:lint"
   image:
-    name: woozymasta/kaniko-tools:v1.6.0
-    entrypoint: ["/bin/sh"]
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
     - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
@@ -83,9 +83,6 @@ AppImage:build:
   artifacts:
     paths: 
     - build_info
-  after_script:
-    - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
-    - source ./ci-notify.sh; share_slack_update_build
   except:
     - main
     - master
@@ -131,43 +128,41 @@ AppImage:build:
 #     - master
 
 # #------------------------------------------Release----------------------------------------------#
-
-    
-# release:
-#   stage: release
-#   image: docker:stable
-#   variables:
-#     DOCKER_DRIVER: overlay2
-#   services:
-#   - docker:dind
-#   script:
-#   - RELEASE_VERSION=`cat .next-version`
-#   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-#   - docker pull ${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION
-#   - docker tag ${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION $CI_REGISTRY_IMAGE:latest
-#   - docker push $CI_REGISTRY_IMAGE:latest
+release:
+  stage: release
+  image: docker:stable
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+  - docker:dind
+  script:
+  - RELEASE_VERSION=`cat .next-version`
+  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  - docker pull ${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION
+  - docker tag ${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION $CI_REGISTRY_IMAGE:latest
+  - docker push $CI_REGISTRY_IMAGE:latest
   
-#   - ./release -v
-#   - ./release changelog
-#   - ./release commit-and-tag CHANGELOG.md release_info
-#   - ./release --ci-commit-tag v$RELEASE_VERSION
-
-#   only:
-#   - main
-#   - master
+  - ./release -v
+  - ./release changelog
+  - ./release commit-and-tag CHANGELOG.md release_info
+  - ./release --ci-commit-tag v$RELEASE_VERSION
+  only:
+  - main
+  - master
 
 #----------------------------------------------- Monitoring install ------------------------------------#
-# Prometheus:Staging:
-#   stage: staging
-#   needs: []
-#   extends: .helm
-#   tags:
-#     - prod
-#   script:
-#     - helm upgrade --install --namespace monitoring --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
-#   except:
-#     - main
-#     - master
+Prometheus:Staging:
+  stage: staging
+  needs: []
+  extends: .helm
+  tags:
+    - prod
+  script:
+    - helm upgrade --install --namespace monitoring --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
+  except:
+    - main
+    - master
+  when: manual  
 
 #-------------------------------------------- Deploy ---------------------------------------------------#
 .helm_auth: &helm_auth
