@@ -66,10 +66,8 @@ AppImage:build:
     # - "Hadolint:lint"
     # - "Golint:lint"
   image:
-    name: gcr.io/kaniko-project/executor:debug
+    name: woozymasta/kaniko-tools:v1.6.0
     entrypoint: [""]
-  services:
-    - curlimages/curl:7.82.0
   script:
     - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
@@ -85,6 +83,8 @@ AppImage:build:
   artifacts:
     paths: 
     - build_info
+  tags:
+    - prod  
   after_script:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
