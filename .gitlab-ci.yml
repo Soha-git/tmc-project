@@ -67,7 +67,7 @@ AppImage:build:
     # - "Golint:lint"
   image:
     name: woozymasta/kaniko-tools:v1.6.0
-    entrypoint: [""]
+    entrypoint: ["/bin/bash"]
   script:
     - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
