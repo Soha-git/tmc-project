@@ -1,3 +1,0 @@
-grafana:
-  plugins:
-    - devopsprodigy-kubegraf-app

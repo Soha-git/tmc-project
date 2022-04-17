@@ -162,7 +162,6 @@ Prometheus:Staging:
   except:
     - main
     - master
-  when: manual  
 
 #-------------------------------------------- Deploy ---------------------------------------------------#
 .helm_auth: &helm_auth
@@ -195,7 +194,6 @@ Prometheus:Staging:
 # # deploy to staging:
 # #   <<: *staging_deploy
 # #   when: manual
-# #   environment: staging
 # #   except:
 # #     - master
 # #     - main
