@@ -36,11 +36,11 @@ cat <<-SLACK
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Job URL:*\n $GITLAB_REPO_URL/${GITLAB_REPO_URL}"
+                                "text": "*Job URL:*\n $CI_REPOSITORY_URL/${CI_JOB_URL}"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Commit URL:*\n $GITLAB_REPO_URL$(git rev-parse HEAD)"
+                                "text": "*Commit URL:*\n $CI_REPOSITORY_URL$(git rev-parse HEAD)"
                             },
                             {
                                 "type": "mrkdwn",

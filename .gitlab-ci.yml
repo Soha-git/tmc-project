@@ -69,8 +69,7 @@ AppImage:build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   services:
-    - name: curlimages/curl:7.82.0 
-      alias: curl
+    - curlimages/curl:7.82.0
   script:
     - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
