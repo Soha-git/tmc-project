@@ -62,7 +62,5 @@ WORKDIR /root
 ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko/executor
 ENV DOCKER_CONFIG /kaniko/.docker/
 
-
-ENTRYPOINT [ "/bin/bash" ]
-
+CMD [ "/bin/bash" ]
 
