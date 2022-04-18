@@ -63,7 +63,7 @@ ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko
 ENV DOCKER_CONFIG /kaniko/.docker/
 
 
-ENTRYPOINT [ "/bin/sh" ]
+ENTRYPOINT [ "/bin/bash" ]
 
 
 
