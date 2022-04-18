@@ -94,7 +94,7 @@ HelmPackage:build:
   extends: .helm
   needs: 
     - "version"
-    - "Helmlint:lint"
+  #  - "Helmlint:lint"
   script:
     - chartVersion=`cat .next-version`
     - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$chartVersion"
