@@ -59,38 +59,62 @@ version:
 #    - master
 
 #------------------------- Build --------------------------------------------------------#
+# AppImage:build:
+#   stage: build
+#   needs: 
+#     - "version"
+#     # - "Hadolint:lint"
+#     # - "Golint:lint"
+#   image:
+#     name: gcr.io/kaniko-project/executor:debug
+#     entrypoint: [""]
+#   script:
+#     - tag=`cat .next-version`
+#     - mkdir -p /kaniko/.docker
+#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+#     - >-
+#       /kaniko/executor
+#       --cache=true --context "${CI_PROJECT_DIR}" 
+#       --dockerfile "./dockerfile"
+#       --destination ${CI_REGISTRY_IMAGE}:v$tag
+#     - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
+#     - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
+#     - echo "RELEASE_VERSION=`cat .next-version`" >> build_info  
+#   artifacts:
+#     paths: 
+#     - build_info
+#   except:
+#     - main
+#    - master
+
 AppImage:build:
   stage: build
-  needs: 
-    - "version"
-    # - "Hadolint:lint"
-    # - "Golint:lint"
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: ["/bin/bash", "-c"]
-  before_script:
-    - add apk --update curl  
+  image: docker:stable
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+  - docker:dind
   script:
-    - tag=`cat .next-version`
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}" 
-      --dockerfile "./dockerfile"
-      --destination ${CI_REGISTRY_IMAGE}:v$tag
-    - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
-    - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
-    - echo "RELEASE_VERSION=`cat .next-version`" >> build_info  
+  - tag=`cat .next-version`
+  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  - docker build --cache-from ${CI_REGISTRY_IMAGE}:latest -t ${CI_REGISTRY_IMAGE}:v$tag .
+  - docker push ${CI_REGISTRY_IMAGE}:v$tag
+  - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
+  - echo "RELEASE_DESC=\"$(uname -mo) binary\"" >> build_info
+  - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
+  - echo "RELEASE_VERSION=$(<.next-version)" >> build_info
   artifacts:
-    paths: 
+    paths:
     - build_info
   except:
-    - main
-    - master
+  - main
+  - master
+  - tags
   after_script:
     - if [ ${CI_JOB_STATUS} == "passed" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
+
+
 # HelmPackage:build:
 #   stage: build
 #   extends: .helm
