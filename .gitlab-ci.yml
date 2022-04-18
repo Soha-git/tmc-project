@@ -87,7 +87,7 @@ AppImage:build:
     # - "Golint:lint"
   image:
     name: "${CI_REGISTRY_IMAGE}:base"
-    entrypoint: [""]
+    entrypoint: ["/kaniko/executor"]
   script:
     - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker

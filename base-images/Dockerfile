@@ -59,11 +59,10 @@ RUN helm plugin install https://github.com/chartmuseum/helm-push &&\
 
 USER root
 WORKDIR /root    
-ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko
+ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko/executor
 ENV DOCKER_CONFIG /kaniko/.docker/
 
 
 ENTRYPOINT [ "/bin/bash" ]
-
 
 
