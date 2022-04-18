@@ -88,10 +88,9 @@ AppImage:build:
     name: "${CI_REGISTRY_IMAGE}:base"
     entrypoint: [""]
   script:
+    - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - ls -la 
-    - tag=`cat .next-version`
     - kaniko --cache=true --context "${CI_PROJECT_DIR}" --dockerfile "./dockerfile" --destination ${CI_REGISTRY_IMAGE}:v$tag
     - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
     - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
@@ -99,6 +98,10 @@ AppImage:build:
   artifacts:
     paths: 
     - build_info
+  after_script:
+    - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
+    - source ./ci-notify.sh; share_slack_update_build
+  
   except:
     - main
     - master
