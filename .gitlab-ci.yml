@@ -31,124 +31,105 @@ version:
     - tags
 
 #-------------------------------------------- Lint---------------------------------------------------#
-Hadolint:lint:
-  stage: lint
-  image: hadolint/hadolint:v2.9.2-alpine
-  script:
-    - hadolint dockerfile
-  except:
-    - main
-    - master
+# Hadolint:lint:
+#   stage: lint
+#   image: hadolint/hadolint:v2.9.2-alpine
+#   script:
+#     - hadolint dockerfile
+#   except:
+#     - main
+#     - master
 
-Golint:lint:
-  stage: lint
-  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
-  script:
-    - golangci-lint run 
-  except:
-    - main
-    - master
+# Golint:lint:
+#   stage: lint
+#   image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
+#   script:
+#     - golangci-lint run 
+#   except:
+#     - main
+#     - master
 
-Helmlint:lint:
-  stage: lint
-  image: dtzar/helm-kubectl:3.8
-  script:
-    - helm lint ${CI_PROJECT_DIR}/k8s/hello-golang
-  except:
-    - main
-    - master
+# Helmlint:lint:
+#   stage: lint
+#   image: dtzar/helm-kubectl:3.8
+#   script:
+#     - helm lint ${CI_PROJECT_DIR}/k8s/hello-golang
+#   except:
+#     - main
+#    - master
 
 #------------------------- Build --------------------------------------------------------#
-BaseImage:build:
-  stage: build
-  needs: ["Hadolint:lint"]
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  script:
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/base-images/Dockerfile"
-      --destination "${CI_REGISTRY_IMAGE}:base"
-  except:
-    - main
-    - master
-
 AppImage:build:
   stage: build
   needs: 
     - "version"
-    - "BaseImage:build"
-    - "Hadolint:lint"
-    - "Golint:lint"
+    # - "Hadolint:lint"
+    # - "Golint:lint"
   image:
-    name: "${CI_REGISTRY_IMAGE}:base"
-    entrypoint: [""]
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: ["/bin/bash", "-c"]
   before_script:
-    -  apk add --update curl
+    - add apk --update curl  
   script:
     - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - kaniko --cache=true --context "${CI_PROJECT_DIR}" --dockerfile "./dockerfile" --destination ${CI_REGISTRY_IMAGE}:v$tag
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}" 
+      --dockerfile "./dockerfile"
+      --destination ${CI_REGISTRY_IMAGE}:v$tag
     - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
     - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
     - echo "RELEASE_VERSION=`cat .next-version`" >> build_info  
   artifacts:
     paths: 
     - build_info
+  except:
+    - main
+    - master
   after_script:
     - if [ ${CI_JOB_STATUS} == "passed" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
-  except:
-    - main
-    - master
-
-HelmPackage:build:
-  stage: build
-  image:
-    name: "${CI_REGISTRY_IMAGE}:base"
-  before_script:
-    - - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN Helm-chart "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"  
-  needs: 
-    - "version"
-    - "Helmlint:lint"
-  script:
-    - chartVersion=`cat .next-version`
-    - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$chartVersion"
-    - helm cm-push hello-golang-chart-$chartVersion.tgz Helm-chart
-  except:
-    - main
-    - master
+# HelmPackage:build:
+#   stage: build
+#   extends: .helm
+#   needs: 
+#     - "version"
+#     - "Helmlint:lint"
+#   script:
+#     - chartVersion=`cat .next-version`
+#     - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$chartVersion"
+#     - helm cm-push hello-golang-chart-$chartVersion.tgz Helm-chart
+#   except:
+#     - main
+#     - master
 
 #---------------------------------------Test----------------------------------------------#
-.go-test: &go-test
-  stage: test
-  image: tetafro/golang-gcc:1.17-alpine
-  needs:
-    - "AppImage:build"
-  services:
-    - name: '${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION'
-      alias: server  
+# .go-test: &go-test
+#   stage: test
+#   image: tetafro/golang-gcc:1.17-alpine
+#   needs:
+#     - "AppImage:build"
+#   services:
+#     - name: '${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION'
+#       alias: server  
 
-TestServer:TestImage:
-  <<: *go-test
-  script:
-    - go test -v ./test/server_test.go 
-  except:
-    - main
-    - master
+# TestServer:TestImage:
+#   <<: *go-test
+#   script:
+#     - go test -v ./test/server_test.go 
+#   except:
+#     - main
+#     - master
 
-TestRequest:TestImage:
-  <<: *go-test
-  script:
-    - go test -v ./test/request_test.go 
-  except:
-    - main
-    - master
+# TestRequest:TestImage:
+#   <<: *go-test
+#   script:
+#     - go test -v ./test/request_test.go 
+#   except:
+#     - main
+#     - master
 
 # #------------------------------------------Release----------------------------------------------#
 release:
@@ -174,17 +155,17 @@ release:
   - master
 
 #----------------------------------------------- Monitoring install ------------------------------------#
-# Prometheus:Staging:
-#   stage: staging
-#   needs: []
-#   extends: .helm
-#   tags:
-#     - prod
-#   script:
-#     - helm upgrade --install --namespace monitoring --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
-#   except:
-#     - main
-#     - master
+Prometheus:Staging:
+  stage: staging
+  needs: []
+  extends: .helm
+  tags:
+    - prod
+  script:
+    - helm upgrade --install --namespace monitoring --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
+  except:
+    - main
+    - master
 
 #-------------------------------------------- Deploy ---------------------------------------------------#
 .helm_auth: &helm_auth
