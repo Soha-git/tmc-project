@@ -82,6 +82,7 @@ AppImage:build:
   stage: build
   needs: 
     - "version"
+    - "BaseImage:build"
     # - "Hadolint:lint"
     # - "Golint:lint"
   image:
