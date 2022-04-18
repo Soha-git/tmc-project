@@ -82,12 +82,12 @@ AppImage:build:
   stage: build
   needs: 
     - "version"
-    - "BaseImage:build"
+   # - "BaseImage:build"
     # - "Hadolint:lint"
     # - "Golint:lint"
   image:
     name: "${CI_REGISTRY_IMAGE}:base"
-    entrypoint: ["/kaniko/executor"]
+    entrypoint: [""]
   script:
     - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
