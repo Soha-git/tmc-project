@@ -59,6 +59,25 @@ version:
 #    - master
 
 #------------------------- Build --------------------------------------------------------#
+BaseImage:build:
+  stage: build
+  #needs: ["Hadolint:lint"]
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/build/base-images/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:base"
+  except:
+    - main
+    - master
+
+
 AppImage:build:
   stage: build
   needs: 
@@ -66,7 +85,7 @@ AppImage:build:
     # - "Hadolint:lint"
     # - "Golint:lint"
   image:
-    name: gcr.io/kaniko-project/executor:debug
+    name: "${CI_REGISTRY_IMAGE}:base"
     entrypoint: [""]
   script:
     - tag=`cat .next-version`
@@ -151,17 +170,17 @@ release:
   - master
 
 #----------------------------------------------- Monitoring install ------------------------------------#
-Prometheus:Staging:
-  stage: staging
-  needs: []
-  extends: .helm
-  tags:
-    - prod
-  script:
-    - helm upgrade --install --namespace monitoring --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
-  except:
-    - main
-    - master
+# Prometheus:Staging:
+#   stage: staging
+#   needs: []
+#   extends: .helm
+#   tags:
+#     - prod
+#   script:
+#     - helm upgrade --install --namespace monitoring --create-namespace monitoring -f ${CI_PROJECT_DIR}/k8s/monitoring/alertmanager.yaml prometheus-community/kube-prometheus-stack
+#   except:
+#     - main
+#     - master
 
 #-------------------------------------------- Deploy ---------------------------------------------------#
 .helm_auth: &helm_auth

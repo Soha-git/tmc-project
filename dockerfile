@@ -11,15 +11,15 @@ RUN go mod download && \
 FROM alpine:3.14 as base
 RUN  apk add --update --no-cache  ca-certificates=~20211220-r0
 
-RUN addgroup go-app &&\
-    adduser -S -G go-app go-app &&\
+RUN addgroup appUser &&\
+    adduser -S -G appUser appUser &&\
     mkdir /app  
 
 COPY  --from=build /go/app/main /app/main 
 
-RUN  chown -R go-app:go-app /app
+RUN  chown -R appUser:appUser /app
 
 WORKDIR /app
-USER go-app
+USER appUser
 
 ENTRYPOINT [ "./main" ]

@@ -1,5 +1,5 @@
 # Hello-Golang
-Это проект был разработан, в рамках дипломного проекта по оканчанию курса в школе TeachMeSkills.
+Это проект был разработан, в рамках дипломного проекта по оканчанию курса в школе [TeachMeSkills](https://teachmeskills.by/).
 
 Данный проект автоматизирует процесс сборки приложения, тестирования, установку необходимых компонентов для его работы и доставку рабочего приложения на целевую инфраструкту.
 
@@ -48,10 +48,9 @@ renovate.json
 Чтобы установить данные компоненты,вы можете запустить скрипт **minikube_install.sh** расположенный в папке **k8s/script/**.
 Либо воспользоватся офицальной документацией [Minikube](https://minikube.sigs.k8s.io/docs/start/), [Kubeclt](https://kubernetes.io/ru/docs/tasks/tools/install-kubectl/) и [Helm](https://helm.sh/).
 
-Для запуска [Minikube](https://minikube.sigs.k8s.io/docs/start/) и нужных компонентов необходимо запустить скрипт **minikube_run.sh** расположенный в папке **k8s/script/**.
+Для запуска [Minikube](https://minikube.sigs.k8s.io/docs/start/) и нужных компонентов, необходимо запустить скрипт **minikube_run.sh** расположенный в папке **k8s/script/**.
 
 ```no-highlight
-
 В скрипт minikube_run.sh необходимо передать либо изменить в нутри скрипта 3 переменные:
 
 - gitlab_tags
@@ -59,5 +58,4 @@ renovate.json
 - gitlab_token
 
 Эти переменные необходимы для установки и правеленой работы gitlab-runner
-
 ```
