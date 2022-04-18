@@ -36,7 +36,7 @@ cat <<-SLACK
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Job URL:*\n $CI_REPOSITORY_URL/${CI_JOB_URL}"
+                                "text": "*Job URL:*\n ${CI_JOB_URL}"
                             },
                             {
                                 "type": "mrkdwn",
