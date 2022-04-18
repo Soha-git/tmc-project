@@ -64,6 +64,10 @@ Helmlint:lint:
 AppImage:build:
   stage: build
   image: docker:stable
+  needs:
+    - "version"
+    - "Hadolint:lint"
+    - "Golint:lint"
   variables:
     DOCKER_DRIVER: overlay2
   services:
@@ -106,7 +110,7 @@ HelmPackage:build:
   after_script:
     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
     - source ./ci-notify.sh; share_slack_update_build
-    
+
 #---------------------------------------Test----------------------------------------------#
 
 .go-test: &go-test
