@@ -51,6 +51,7 @@ RUN addgroup gitlab &&\
 
 
 COPY --from=build /go/src/github.com/GoogleContainerTools/kaniko/out/* /kaniko/
+COPY --from=build /go/src/github.com/GoogleContainerTools/kaniko/out/executor /usr/bin/kaniko
 COPY --from=build /go/src/github.com/GoogleContainerTools/kaniko/out/warmer /kaniko/warmer
 COPY --from=tools /usr/bin/kubectl /usr/local/bin/kubectl
 COPY --from=tools /usr/bin/helm /usr/bin/helm
@@ -59,7 +60,7 @@ RUN helm plugin install https://github.com/chartmuseum/helm-push &&\
 
 USER root
 WORKDIR /root    
-ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko/executor
+ENV PATH $PATH:/usr/local/go/bin/:/usr/bin/helm:/usr/local/bin/kubectl:/kaniko/executor:/usr/bin/kaniko
 ENV DOCKER_CONFIG /kaniko/.docker/
 
 CMD [ "/bin/bash" ]

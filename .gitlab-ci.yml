@@ -59,48 +59,40 @@ version:
 #    - master
 
 #------------------------- Build --------------------------------------------------------#
-# BaseImage:build:
-#   stage: build
-#   #needs: ["Hadolint:lint"]
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
-#   script:
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}"
-#       --dockerfile "${CI_PROJECT_DIR}/base-images/Dockerfile"
-#       --destination "${CI_REGISTRY_IMAGE}:base"
-#   except:
-#     - main
-#     - master
-
-TEst:
+BaseImage:build:
   stage: build
+  #needs: ["Hadolint:lint"]
   image:
-    name: "${CI_REGISTRY_IMAGE}:base"
-    entrypoint: ["/bin/bash", "-c"]
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
   script:
-    -  helm version 
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - >-
+      /kaniko/executor
+      --cache=true --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/base-images/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:base"
+  except:
+    - main
+    - master
 
 AppImage:build:
   stage: build
   needs: 
     - "version"
-   # - "BaseImage:build"
+    - "BaseImage:build"
     # - "Hadolint:lint"
     # - "Golint:lint"
   image:
     name: "${CI_REGISTRY_IMAGE}:base"
-    entrypoint: ["/bin/bash", "-c"]
+    entrypoint: [""]
   script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - ls -la 
     - tag=`cat .next-version`
-    - /bin/bash /kaniko/executor --cache=true --context "${CI_PROJECT_DIR}"       --dockerfile "./dockerfile"    --destination ${CI_REGISTRY_IMAGE}:v$tag
+    - kaniko --cache=true --context "${CI_PROJECT_DIR}" --dockerfile "./dockerfile" --destination ${CI_REGISTRY_IMAGE}:v$tag
     - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
     - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
     - echo "RELEASE_VERSION=`cat .next-version`" >> build_info  
