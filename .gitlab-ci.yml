@@ -17,6 +17,7 @@ stages:
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN Helm-chart "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
     # - helm repo add grafana https://grafana.github.io/helm-charts
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    - apk add --no-cache curl 
 
 
 version:
@@ -61,74 +62,51 @@ version:
 #------------------------- Build --------------------------------------------------------#
 # AppImage:build:
 #   stage: build
-#   needs: 
-#     - "version"
-#     # - "Hadolint:lint"
-#     # - "Golint:lint"
-#   image:
-#     name: gcr.io/kaniko-project/executor:debug
-#     entrypoint: [""]
+#   image: docker:stable
+#   variables:
+#     DOCKER_DRIVER: overlay2
+#   services:
+#   - docker:dind
+#   before_script:
+#   - apk add --no-cache curl 
 #   script:
-#     - tag=`cat .next-version`
-#     - mkdir -p /kaniko/.docker
-#     - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-#     - >-
-#       /kaniko/executor
-#       --cache=true --context "${CI_PROJECT_DIR}" 
-#       --dockerfile "./dockerfile"
-#       --destination ${CI_REGISTRY_IMAGE}:v$tag
-#     - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
-#     - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
-#     - echo "RELEASE_VERSION=`cat .next-version`" >> build_info  
+#   - tag=`cat .next-version`
+#   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+#   - docker build --cache-from "${CI_REGISTRY_IMAGE}:v$tag" -t ${CI_REGISTRY_IMAGE}:v$tag .
+#   - docker push ${CI_REGISTRY_IMAGE}:v$tag
+#   - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
+#   - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
+#   - echo "RELEASE_VERSION=`cat .next-version`">> build_info
 #   artifacts:
-#     paths: 
+#     paths:
 #     - build_info
 #   except:
-#     - main
-#    - master
+#   - main
+#   - master
+#   - tags
+#   after_script:
+#     - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
+#     - source ./ci-notify.sh; share_slack_update_build
 
-AppImage:build:
+
+HelmPackage:build:
   stage: build
-  image: docker:stable
-  variables:
-    DOCKER_DRIVER: overlay2
-  services:
-  - docker:dind
-  before_script:
-  - apk add --no-cache curl 
+  extends: .helm
+  needs: 
+    - "version"
+    - "Helmlint:lint"
   script:
-  - tag=`cat .next-version`
-  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-  - docker build --cache-from ${CI_REGISTRY_IMAGE}:v$tag -t ${CI_REGISTRY_IMAGE}:v$tag .
-  - docker push ${CI_REGISTRY_IMAGE}:v$tag
-  - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
-  - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
-  - echo "RELEASE_VERSION=`cat .next-version`">> build_info
-  artifacts:
-    paths:
-    - build_info
+    - chartVersion=`cat .next-version`
+    - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$chartVersion"
+    - helm cm-push hello-golang-chart-$chartVersion.tgz Helm-chart
   except:
-  - main
-  - master
-  - tags
+    - main
+    - master
+  when: manual
+  allow_failure: false
   after_script:
-    - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
-    - source ./ci-notify.sh; share_slack_update_build
-
-
-# HelmPackage:build:
-#   stage: build
-#   extends: .helm
-#   needs: 
-#     - "version"
-#     - "Helmlint:lint"
-#   script:
-#     - chartVersion=`cat .next-version`
-#     - helm package ${CI_PROJECT_DIR}/k8s/hello-golang --version "$chartVersion"
-#     - helm cm-push hello-golang-chart-$chartVersion.tgz Helm-chart
-#   except:
-#     - main
-#     - master
+  - >
+    curl -X POST -H 'Content-type: application/json' --data '{"text":"*'"$GITLAB_USER_NAME "'"}' https://hooks.slack.com/services/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"
 
 #---------------------------------------Test----------------------------------------------#
 # .go-test: &go-test
