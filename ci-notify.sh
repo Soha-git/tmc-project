@@ -40,10 +40,6 @@ cat <<-SLACK
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Commit URL:*\n $CI_REPOSITORY_URL$(git rev-parse HEAD)"
-                            },
-                            {
-                                "type": "mrkdwn",
                                 "text": "*Commit Branch:*\n ${CI_COMMIT_REF_NAME}"
                             }
                         ]

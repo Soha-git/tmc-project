@@ -87,6 +87,8 @@ AppImage:build:
   image:
     name: "${CI_REGISTRY_IMAGE}:base"
     entrypoint: [""]
+  before_script:
+    -  apk add --update curl
   script:
     - tag=`cat .next-version`
     - mkdir -p /kaniko/.docker
@@ -99,9 +101,8 @@ AppImage:build:
     paths: 
     - build_info
   after_script:
-    - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
-    - source ./ci-notify.sh; share_slack_update_build
-  
+    - if [ ${CI_JOB_STATUS} == "passed" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
+    - /bin/bash ./ci-notify.sh; share_slack_update_build
   except:
     - main
     - master
