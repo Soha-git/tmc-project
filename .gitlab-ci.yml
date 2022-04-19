@@ -201,6 +201,7 @@ Prometheus:Staging:
 
 deploy to production:
   <<: *prod_deploy
+  needs: []
   when: manual
   only:
     - master
