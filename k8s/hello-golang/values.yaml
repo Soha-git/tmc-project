@@ -3,11 +3,10 @@ rollingUpdate:
   maxSurgeCount: 1
   maxUnavailableCount: 0
   
-namespace: app-dev
+namespace: prod
 image:
   repository: registry.gitlab.com/sorokinalexander/golang-application
   pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 imagePullSecrets: registry-credentials
 service:
@@ -26,6 +25,7 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+### Secret for registration  gitlab registry ###
 secret:
   name: registry-credentials
   data:
