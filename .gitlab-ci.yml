@@ -68,8 +68,8 @@ AppImage:build:
     - "version"
     - "Hadolint:lint"
     - "Golint:lint"
-  # variables:
-  #   DOCKER_DRIVER: overlay2
+  variables:
+    DOCKER_DRIVER: overlay2
   services:
   - docker:dind
   before_script:
@@ -79,14 +79,6 @@ AppImage:build:
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
   - docker build -t ${CI_REGISTRY_IMAGE}:v$tag .
   - docker push ${CI_REGISTRY_IMAGE}:v$tag
-  - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
-  - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
-  - echo "RELEASE_VERSION=`cat .next-version`">> build_info
-  artifacts:
-    paths:
-    - public
-    - build_info
-    expire_in: 1 week
   except:
   - main
   - master
@@ -118,11 +110,8 @@ HelmPackage:build:
   stage: test
   image: tetafro/golang-gcc:1.17-alpine
   needs:
-    - "version"
     - "AppImage:build"
-  # services: 
-  #   - ${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION
-
+    
 TestServer:TestImage:
   <<: *go-test
   script:
