@@ -117,8 +117,11 @@ HelmPackage:build:
 .go-test: &go-test
   stage: test
   image: tetafro/golang-gcc:1.17-alpine
-  # needs:
-  #   - "AppImage:build"
+  needs:
+    - "version"
+    - "AppImage:build"
+  before_script:
+    - RELEASE_VERSION=`cat .next-version`
   services: 
     - ${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION
 
