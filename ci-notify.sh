@@ -6,9 +6,9 @@ SLACKWEBHOOKURL="https://hooks.slack.com/services/T038N79TXDZ/B039765JJE5/K3dXoe
 
 function print_slack_summary_build() {
 # Populate header and message 
-slack_msg_header=":x: ${CI_JOB_STAGE} to ${CI_COMMIT_BRANCH} failed*"
+slack_msg_header=":x: Stage ${CI_JOB_STAGE} to branch ${CI_COMMIT_BRANCH} failed*"
 if [[ "${EXIT_STATUS}" == "${SUCCESS}" ]]; then
-        slack_msg_header=":heavy_check_mark: ${CI_JOB_STAGE} to ${CI_COMMIT_BRANCH} succeeded*"
+        slack_msg_header=":heavy_check_mark: Stage ${CI_JOB_STAGE} to branch ${CI_COMMIT_BRANCH} succeeded*"
     fi
 cat <<-SLACK
             {
@@ -28,23 +28,23 @@ cat <<-SLACK
                         "fields": [
                             {
                                 "type": "mrkdwn",
-                                "text": "*Stage:*\n${CI_JOB_STAGE}"
+                                "text": "*Name Stage:*\n ${CI_JOB_NAME}"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Pushed By:*\n${GITLAB_USER_NAME}"
+                                "text": "*Stage:*\n ${CI_JOB_STAGE}"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Job URL:*\nGITLAB_REPO_URL/${GITLAB_REPO_URL}"
+                                "text": "*Pushed By:*\n ${GITLAB_USER_NAME}"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Commit URL:*\nGITLAB_REPO_URL$(git rev-parse HEAD)"
+                                "text": "*Job URL:*\n ${CI_JOB_URL}"
                             },
                             {
                                 "type": "mrkdwn",
-                                "text": "*Commit Branch:*\n${CI_COMMIT_REF_NAME}"
+                                "text": "*Commit Branch:*\n ${CI_COMMIT_REF_NAME}"
                             }
                         ]
                     },

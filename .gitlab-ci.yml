@@ -17,6 +17,7 @@ stages:
     - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN Helm-chart "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
     # - helm repo add grafana https://grafana.github.io/helm-charts
     - helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    - apk add --no-cache curl 
 
 
 version:
@@ -31,6 +32,7 @@ version:
     - tags
 
 #-------------------------------------------- Lint---------------------------------------------------#
+
 Hadolint:lint:
   stage: lint
   image: hadolint/hadolint:v2.9.2-alpine
@@ -61,55 +63,28 @@ Helmlint:lint:
 #------------------------- Build --------------------------------------------------------#
 AppImage:build:
   stage: build
-  needs: 
+  image: docker:stable
+  needs:
     - "version"
     - "Hadolint:lint"
     - "Golint:lint"
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+  variables:
+    DOCKER_DRIVER: overlay2
+  services:
+  - docker:dind
+  before_script:
+  - apk add --no-cache curl
   script:
-    - tag=`cat .next-version`
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
-    - >-
-      /kaniko/executor
-      --cache=true --context "${CI_PROJECT_DIR}" 
-      --dockerfile "./dockerfile"
-      --destination ${CI_REGISTRY_IMAGE}:v$tag
-    - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
-    - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
-    - echo "RELEASE_VERSION=`cat .next-version`" >> build_info  
-  artifacts:
-    name: "build_info"
-    expose_as: 'build_info'
-    paths: ['build_info'] 
+  - tag=`cat .next-version`
+  - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
+  - docker build -t ${CI_REGISTRY_IMAGE}:v$tag .
+  - docker push ${CI_REGISTRY_IMAGE}:v$tag
   except:
-    - main
-    - master
-
-# AppImage:build:
-#   stage: build
-#   image: docker:stable
-#   variables:
-#     DOCKER_DRIVER: overlay2
-#   services:
-#   - docker:dind
-#   script:
-#   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-#   - docker build --cache-from -t $CONTAINER_IMAGE .
-#   - docker push $CONTAINER_IMAGE
-  # - echo "RELEASE_URL=https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/$CI_JOB_ID/artifacts/release" > build_info
-  # - echo "RELEASE_DESC=\"$(uname -mo) binary\"" >> build_info
-  # - echo "RELEASE_SHA=$CI_COMMIT_SHA" >> build_info
-  # - echo "RELEASE_VERSION=$(<.next-version)" >> build_info
-  # artifacts:
-  #   paths:
-  #   - build_info
-  # except:
-  # - main
-  # - master
-  # - tags
+  - main
+  - master
+  after_script:
+    - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
+    - source ./ci-notify.sh; share_slack_update_build
 
 
 HelmPackage:build:
@@ -125,17 +100,18 @@ HelmPackage:build:
   except:
     - main
     - master
+  after_script:
+    - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
+    - source ./ci-notify.sh; share_slack_update_build
 
-# #---------------------------------------Test----------------------------------------------#
+#---------------------------------------Test----------------------------------------------#
+
 .go-test: &go-test
   stage: test
   image: tetafro/golang-gcc:1.17-alpine
   needs:
     - "AppImage:build"
-  services:
-    - name: '${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION'
-      alias: server  
-
+    
 TestServer:TestImage:
   <<: *go-test
   script:
@@ -153,8 +129,6 @@ TestRequest:TestImage:
     - master
 
 # #------------------------------------------Release----------------------------------------------#
-
-    
 release:
   stage: release
   image: docker:stable
@@ -163,9 +137,6 @@ release:
   services:
   - docker:dind
   script:
-  # - rm -f release_info
-  # - mv build_info release_info
-  # - . release_info
   - RELEASE_VERSION=`cat .next-version`
   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
   - docker pull ${CI_REGISTRY_IMAGE}:v$RELEASE_VERSION
@@ -175,42 +146,12 @@ release:
   - ./release -v
   - ./release changelog
   - ./release commit-and-tag CHANGELOG.md release_info
-  - ./release --ci-commit-tag v$RELEASE_VERSION #add-download-link -n release -u $RELEASE_URL -d "$RELEASE_DESC"
-
+  - ./release --ci-commit-tag v$RELEASE_VERSION
   only:
   - main
   - master
 
-# release:
-#   stage: release
-#   image: docker:stable
-#   variables:
-#     DOCKER_DRIVER: overlay2
-#   services:
-#   - docker:dind
-#   script:
-#   - rm -f release_info
-#   - mv build_info release_info
-#   - . release_info
-  
-#   - cp release docker
-#   - cp /etc/ssl/certs/ca-certificates.crt docker
-#   - cd docker
-#   - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-#   - docker build -t $CI_REGISTRY_IMAGE:v$RELEASE_VERSION .
-#   - docker push $CI_REGISTRY_IMAGE:v$RELEASE_VERSION
-#   - cd ..
-
-#   - ./release -v
-#   - ./release changelog
-#   - ./release commit-and-tag CHANGELOG.md release_info
-#   - ./release --ci-commit-tag v$RELEASE_VERSION add-download-link -n release -u $RELEASE_URL -d "$RELEASE_DESC"
-#   when: manual
-#   only:
-#   - master
-
-
-# #----------------------------------------------- Monitoring install ------------------------------------#
+#----------------------------------------------- Monitoring install ------------------------------------#
 Prometheus:Staging:
   stage: staging
   needs: []
@@ -223,7 +164,7 @@ Prometheus:Staging:
     - main
     - master
 
-# #-------------------------------------------- Deploy ---------------------------------------------------#
+#-------------------------------------------- Deploy ---------------------------------------------------#
 .helm_auth: &helm_auth
   - helm repo add --username gitlab-ci-token --password $CI_JOB_TOKEN Helm-chart "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/helm/stable"
 
@@ -235,8 +176,10 @@ Prometheus:Staging:
   tags:
     - prod
   script:
-    - helm upgrade --install --namespace app-dev --create-namespace app-dev Helm-chart/hello-golang-chart
-
+    - helm upgrade --install --namespace prod --create-namespace hello-golang Helm-chart/hello-golang-chart
+  after_script:
+    - if [ ${CI_JOB_STATUS} == "success" ]; then EXIT_STATUS=0; else  EXIT_STATUS=1; fi
+    - source ./ci-notify.sh; share_slack_update_build
 .staging_deploy: &staging_deploy
   image: dtzar/helm-kubectl:3.8
   stage: staging
@@ -249,19 +192,17 @@ Prometheus:Staging:
   tags:
     - dev
   script:
-    - helm upgrade --install --namespace app-dev --create-namespace app-dev Helm-chart/Hello-golang-chart  
+    - helm upgrade --install --namespace dev --create-namespace hello-golang Helm-chart/hello-golang-chart 
 
 # # deploy to staging:
 # #   <<: *staging_deploy
 # #   when: manual
-# #   environment: staging
 # #   except:
 # #     - master
 # #     - main
 
 deploy to production:
   <<: *prod_deploy
-  needs: []
   when: manual
   only:
     - master
